@@ -27,37 +27,32 @@ import java.util.Map;
  * @author Franck WOLFF
  */
 public final class LogoutMessage extends AbstractRequestMessage {
-	
+
     private static final long serialVersionUID = 1L;
-	
-	public LogoutMessage() {
-	}
 
-	public LogoutMessage(String clientId) {
-		super(clientId);
-	}
+    public LogoutMessage() {
+    }
 
-	public LogoutMessage(
-		String id,
-		String clientId,
-		long timestamp,
-		long timeToLive,
-		Map<String, Object> headers) {
-		
-		super(id, clientId, timestamp, timeToLive, headers);
-	}
-	
-	@Override
-	public LogoutMessage copy() {
-		LogoutMessage message = new LogoutMessage();
-		
-		copy(message);
-		
-		return message;
-	}
+    public LogoutMessage(String clientId) {
+	super(clientId);
+    }
 
-	@Override
-	public Type getType() {
-		return Type.LOGOUT;
-	}
+    public LogoutMessage(String id, String clientId, long timestamp, long timeToLive, Map<String, Object> headers) {
+
+	super(id, clientId, timestamp, timeToLive, headers);
+    }
+
+    @Override
+    public LogoutMessage copy() {
+	LogoutMessage message = new LogoutMessage();
+
+	copy(message);
+
+	return message;
+    }
+
+    @Override
+    public Type getType() {
+	return Type.LOGOUT;
+    }
 }

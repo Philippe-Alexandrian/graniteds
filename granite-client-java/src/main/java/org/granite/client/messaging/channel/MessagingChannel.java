@@ -26,71 +26,76 @@ import org.granite.client.messaging.ResponseListener;
 import org.granite.client.messaging.messages.ResponseMessage;
 
 /**
- * SPI for messaging channels
- * A messaging channel adds some functionality to channel, mostly consumer management
+ * SPI for messaging channels A messaging channel adds some functionality to channel, mostly consumer management
  *
  * @author Franck WOLFF
  */
 public interface MessagingChannel extends Channel, SessionAwareChannel {
 
     /**
-     * Set the current session id
-     * Necessary to synchronize session ids between remoting and messaging channels, usually the remoting channel
-     * acts as the master channel which handles authentication and session management and propagated it to other
-     * messaging channels
+     * Set the current session id Necessary to synchronize session ids between remoting and messaging channels, usually the remoting channel acts as the master channel which
+     * handles authentication and session management and propagated it to other messaging channels
+     * 
      * @param sessionId session id
      */
-	void setSessionId(String sessionId);
+    @Override
+    void setSessionId(String sessionId);
 
     /**
      * Set the default time to live for messages sent from this channel
+     * 
      * @param defaultTimeToLive default time to live
      */
-	void setDefaultMaxReconnectAttempts(long maxReconnectAttempts);
-	
+    void setDefaultMaxReconnectAttempts(long maxReconnectAttempts);
+
     /**
      * Register a consumer for this channel
+     * 
      * @param consumer consumer
      * @see org.granite.client.messaging.Consumer
      */
-	void addConsumer(Consumer consumer);
+    void addConsumer(Consumer consumer);
 
     /**
      * Unregister a consumer for this channel
+     * 
      * @param consumer consumer
      * @return true if the consumer was registered before the method was called
      * @see org.granite.client.messaging.Consumer
      */
-	boolean removeConsumer(Consumer consumer);
+    boolean removeConsumer(Consumer consumer);
 
     /**
      * Disconnect the channel
+     * 
      * @param listeners array of listener to notify when the channel is disconnected
      * @return future that will be triggered when the channel is disconnected
      */
-	public ResponseMessageFuture disconnect(ResponseListener...listeners);
-	
-	/**
-	 * Register a listener which will be notified of messages occuring on the channel
-	 * @param listener listener
-	 */
-	public void addListener(ChannelResponseListener listener);
-	
-	/**
-	 * Unregister a listener which will be notified of messages occuring on the channel
-	 * @param listener listener
-	 */
-	public void removeListener(ChannelResponseListener listener);
-	
-	/**
-	 * Define the callback to handle authentication for a channel (for use with channels that cannot authenticate themselves, such as websockets)
-	 * @param callback
-	 */
-	public void setReauthenticateCallback(ReauthenticateCallback callback);
-	
-	
-	public static interface ChannelResponseListener {
-		
-		public void onResponse(ResponseMessage responseMessage);
-	}
+    public ResponseMessageFuture disconnect(ResponseListener... listeners);
+
+    /**
+     * Register a listener which will be notified of messages occuring on the channel
+     * 
+     * @param listener listener
+     */
+    public void addListener(ChannelResponseListener listener);
+
+    /**
+     * Unregister a listener which will be notified of messages occuring on the channel
+     * 
+     * @param listener listener
+     */
+    public void removeListener(ChannelResponseListener listener);
+
+    /**
+     * Define the callback to handle authentication for a channel (for use with channels that cannot authenticate themselves, such as websockets)
+     * 
+     * @param callback
+     */
+    public void setReauthenticateCallback(ReauthenticateCallback callback);
+
+    public static interface ChannelResponseListener {
+
+	public void onResponse(ResponseMessage responseMessage);
+    }
 }

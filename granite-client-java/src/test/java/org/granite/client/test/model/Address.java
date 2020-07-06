@@ -37,37 +37,42 @@ public class Address extends AbstractEntity {
     private Country country;
 
     public String getAddress1() {
-        return address1;
+	return this.address1;
     }
+
     public void setAddress1(String address1) {
-        this.address1 = address1;
+	this.address1 = address1;
     }
 
     public String getAddress2() {
-        return address2;
+	return this.address2;
     }
+
     public void setAddress2(String address2) {
-        this.address2 = address2;
+	this.address2 = address2;
     }
 
     public String getCity() {
-        return city;
+	return this.city;
     }
+
     public void setCity(String city) {
-        this.city = city;
+	this.city = city;
     }
 
     public String getZipcode() {
-        return zipcode;
+	return this.zipcode;
     }
+
     public void setZipcode(String zipcode) {
-        this.zipcode = zipcode;
+	this.zipcode = zipcode;
     }
 
     public Country getCountry() {
-        return country;
+	return this.country;
     }
+
     public void setCountry(Country country) {
-        this.country = country;
+	this.country = country;
     }
 }

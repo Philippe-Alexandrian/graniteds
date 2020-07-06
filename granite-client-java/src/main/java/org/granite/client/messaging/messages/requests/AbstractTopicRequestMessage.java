@@ -29,62 +29,55 @@ import org.granite.client.messaging.messages.AbstractMessage;
  * @author Franck WOLFF
  */
 public abstract class AbstractTopicRequestMessage extends AbstractRequestMessage {
-	
-	private static final long serialVersionUID = 1L;
 
-	private String destination = null;
-	private String topic = null;
+    private static final long serialVersionUID = 1L;
 
-	public AbstractTopicRequestMessage() {
-	}
+    private String destination = null;
+    private String topic = null;
 
-	public AbstractTopicRequestMessage(String destination, String topic) {
-		this(null, destination, topic);
-	}
+    public AbstractTopicRequestMessage() {
+    }
 
-	public AbstractTopicRequestMessage(String clientId, String destination, String topic) {
-		super(clientId);
-		
-		this.destination = destination;
-		this.topic = topic;
-	}
+    public AbstractTopicRequestMessage(String destination, String topic) {
+	this(null, destination, topic);
+    }
 
-	public AbstractTopicRequestMessage(
-		String id,
-		String clientId,
-		long timestamp,
-		long timeToLive,
-		Map<String, Object> headers,
-		String destination,
-		String topic) {
-		
-		super(id, clientId, timestamp, timeToLive, headers);
-		
-		this.destination = destination;
-		this.topic = topic;
-	}
+    public AbstractTopicRequestMessage(String clientId, String destination, String topic) {
+	super(clientId);
 
-	public String getDestination() {
-		return destination;
-	}
+	this.destination = destination;
+	this.topic = topic;
+    }
 
-	public void setDestination(String destination) {
-		this.destination = destination;
-	}
+    public AbstractTopicRequestMessage(String id, String clientId, long timestamp, long timeToLive, Map<String, Object> headers, String destination, String topic) {
 
-	public String getTopic() {
-		return topic;
-	}
+	super(id, clientId, timestamp, timeToLive, headers);
 
-	public void setTopic(String topic) {
-		this.topic = topic;
-	}
+	this.destination = destination;
+	this.topic = topic;
+    }
 
-	@Override
-	protected void copy(AbstractMessage message) {
-		super.copy(message);
-		
-		((AbstractTopicRequestMessage)message).destination = destination;
-		((AbstractTopicRequestMessage)message).topic = topic;
-	}
+    public String getDestination() {
+	return this.destination;
+    }
+
+    public void setDestination(String destination) {
+	this.destination = destination;
+    }
+
+    public String getTopic() {
+	return this.topic;
+    }
+
+    public void setTopic(String topic) {
+	this.topic = topic;
+    }
+
+    @Override
+    protected void copy(AbstractMessage message) {
+	super.copy(message);
+
+	((AbstractTopicRequestMessage) message).destination = this.destination;
+	((AbstractTopicRequestMessage) message).topic = this.topic;
+    }
 }

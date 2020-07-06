@@ -31,39 +31,43 @@ import org.granite.client.messaging.messages.ResponseMessage;
  */
 public abstract class AbstractResponseEvent<M extends ResponseMessage> implements IncomingMessageEvent<M> {
 
-	protected final RequestMessage request;
-	protected final M response;
-	
-	public AbstractResponseEvent(RequestMessage request, M response) {
-		if (request == null || response == null)
-			throw new NullPointerException("request and response cannot be null");
+    protected final RequestMessage request;
+    protected final M response;
 
-		this.request = request;
-		this.response = response;
+    public AbstractResponseEvent(RequestMessage request, M response) {
+	if ((request == null) || (response == null)) {
+	    throw new NullPointerException("request and response cannot be null");
 	}
+
+	this.request = request;
+	this.response = response;
+    }
 
     /**
      * Source request message
+     * 
      * @return request message
      */
-	public RequestMessage getRequest() {
-		return request;
-	}
+    public RequestMessage getRequest() {
+	return this.request;
+    }
 
     /**
      * Response message
+     * 
      * @return response message
      */
-	public M getResponse() {
-		return response;
-	}
+    public M getResponse() {
+	return this.response;
+    }
 
     /**
      * Response message
+     * 
      * @return response message
      */
-	@Override
-	public M getMessage() {
-		return response;
-	}
+    @Override
+    public M getMessage() {
+	return this.response;
+    }
 }

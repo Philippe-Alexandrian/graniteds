@@ -25,12 +25,12 @@ import org.granite.client.messaging.messages.ResponseMessage;
 import org.granite.client.messaging.messages.responses.FaultMessage;
 
 public interface ChannelStatusListener {
-	
-	public void fault(Channel channel, FaultMessage faultMessage);
-	
-	public void pingedChanged(Channel channel, boolean pinged);
-	
-	public void authenticatedChanged(Channel channel, boolean authenticated, ResponseMessage responseMessage);
-	
-	public void credentialsCleared(Channel channel);
+
+    public void fault(Channel channel, FaultMessage faultMessage);
+
+    public void pingedChanged(Channel channel, boolean pinged);
+
+    public void authenticatedChanged(Channel channel, boolean authenticated, ResponseMessage responseMessage);
+
+    public void credentialsCleared(Channel channel);
 }

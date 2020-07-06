@@ -26,20 +26,20 @@ package org.granite.client.platform;
  */
 public class PlatformConfigurationError extends Error {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public PlatformConfigurationError() {
-	}
+    public PlatformConfigurationError() {
+    }
 
-	public PlatformConfigurationError(String message) {
-		super(message);
-	}
+    public PlatformConfigurationError(String message) {
+	super(message);
+    }
 
-	public PlatformConfigurationError(Throwable cause) {
-		super(cause);
-	}
+    public PlatformConfigurationError(Throwable cause) {
+	super(cause);
+    }
 
-	public PlatformConfigurationError(String message, Throwable cause) {
-		super(message, cause);
-	}
+    public PlatformConfigurationError(String message, Throwable cause) {
+	super(message, cause);
+    }
 }

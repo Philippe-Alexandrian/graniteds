@@ -35,93 +35,107 @@ import org.granite.messaging.persistence.PersistentCollectionSnapshot;
 public class PersistentSortedSet<E> extends AbstractPersistentSimpleCollection<E, SortedSet<E>> implements SortedSet<E>, PersistentSortedCollection<SortedSet<E>, E> {
 
     private static final long serialVersionUID = 1L;
-	
-	public PersistentSortedSet() {
-	}
 
-	public PersistentSortedSet(boolean initialized) {
-		this(initialized ? new TreeSet<E>() : null, false);
-	}
+    public PersistentSortedSet() {
+    }
 
-	public PersistentSortedSet(SortedSet<E> collection) {		
-		this(collection, true);
-	}
+    public PersistentSortedSet(boolean initialized) {
+	this(initialized ? new TreeSet<E>() : null, false);
+    }
 
-	public PersistentSortedSet(SortedSet<E> collection, boolean clone) {		
-		if (collection != null)
-			init(clone ? new TreeSet<E>(collection) : collection, null, false);
-	}
-	
-	@Override
-	protected void doInitialize(SortedSet<E> sortedSet, boolean empty) {
-		init(empty ? new TreeSet<E>(sortedSet.comparator()) : sortedSet, null, false);
-	}
-	
-	public Comparator<? super E> comparator() {
-		return getCollection().comparator();
-	}
+    public PersistentSortedSet(SortedSet<E> collection) {
+	this(collection, true);
+    }
 
-	public SortedSet<E> subSet(E fromElement, E toElement) {
-		if (!checkInitializedRead())
-			return null;
-		return new SortedSetProxy<E>(getCollection().subSet(fromElement, toElement));
+    public PersistentSortedSet(SortedSet<E> collection, boolean clone) {
+	if (collection != null) {
+	    init(clone ? new TreeSet<>(collection) : collection, null, false);
 	}
+    }
 
-	public SortedSet<E> headSet(E toElement) {
-		if (!checkInitializedRead())
-			return null;
-		return new SortedSetProxy<E>(getCollection().headSet(toElement));
-	}
+    @Override
+    protected void doInitialize(SortedSet<E> sortedSet, boolean empty) {
+	init(empty ? new TreeSet<E>(sortedSet.comparator()) : sortedSet, null, false);
+    }
 
-	public SortedSet<E> tailSet(E fromElement) {
-		if (!checkInitializedRead())
-			return null;
-		return new SortedSetProxy<E>(getCollection().tailSet(fromElement));
-	}
+    @Override
+    public Comparator<? super E> comparator() {
+	return getCollection().comparator();
+    }
 
-	public E first() {
-		if (!checkInitializedRead())
-			return null;
-		return getCollection().first();
+    @Override
+    public SortedSet<E> subSet(E fromElement, E toElement) {
+	if (!checkInitializedRead()) {
+	    return null;
 	}
+	return new SortedSetProxy<>(getCollection().subSet(fromElement, toElement));
+    }
 
-	public E last() {
-		if (!checkInitializedRead())
-			return null;
-		return getCollection().last();
+    @Override
+    public SortedSet<E> headSet(E toElement) {
+	if (!checkInitializedRead()) {
+	    return null;
 	}
+	return new SortedSetProxy<>(getCollection().headSet(toElement));
+    }
 
-	@Override
-	protected PersistentCollectionSnapshot createSnapshot(Object io, boolean forReading) {
-		PersistentCollectionSnapshotFactory factory = PersistentCollectionSnapshotFactory.newInstance(io);
-		if (forReading || !wasInitialized())
-			return factory.newPersistentCollectionSnapshot(true, getDetachedState());
-		return factory.newPersistentCollectionSnapshot(true, getDetachedState(), isDirty(), getCollection());
+    @Override
+    public SortedSet<E> tailSet(E fromElement) {
+	if (!checkInitializedRead()) {
+	    return null;
 	}
+	return new SortedSetProxy<>(getCollection().tailSet(fromElement));
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	protected void updateFromSnapshot(ObjectInput in, PersistentCollectionSnapshot snapshot) {
-		if (snapshot.isInitialized()) {
-			Comparator<? super E> comparator = null;
-			try {
-				comparator = snapshot.newComparator(in);
-			}
-			catch (Exception e) {
-				throw new RuntimeException("Could not create instance of comparator", e);
-			}
-			SortedSet<E> set = new TreeSet<E>(comparator);
-			set.addAll((Collection<? extends E>)snapshot.getElementsAsCollection());
-			init(set, snapshot.getDetachedState(), snapshot.isDirty());
-		}
-		else
-			init(null, snapshot.getDetachedState(), false);
+    @Override
+    public E first() {
+	if (!checkInitializedRead()) {
+	    return null;
 	}
-	
+	return getCollection().first();
+    }
+
+    @Override
+    public E last() {
+	if (!checkInitializedRead()) {
+	    return null;
+	}
+	return getCollection().last();
+    }
+
+    @Override
+    protected PersistentCollectionSnapshot createSnapshot(Object io, boolean forReading) {
+	PersistentCollectionSnapshotFactory factory = PersistentCollectionSnapshotFactory.newInstance(io);
+	if (forReading || !wasInitialized()) {
+	    return factory.newPersistentCollectionSnapshot(true, getDetachedState());
+	}
+	return factory.newPersistentCollectionSnapshot(true, getDetachedState(), isDirty(), getCollection());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected void updateFromSnapshot(ObjectInput in, PersistentCollectionSnapshot snapshot) {
+	if (snapshot.isInitialized()) {
+	    Comparator<? super E> comparator = null;
+	    try {
+		comparator = snapshot.newComparator(in);
+	    } catch (Exception e) {
+		throw new RuntimeException("Could not create instance of comparator", e);
+	    }
+	    SortedSet<E> set = new TreeSet<>(comparator);
+	    set.addAll((Collection<? extends E>) snapshot.getElementsAsCollection());
+	    init(set, snapshot.getDetachedState(), snapshot.isDirty());
+	} else {
+	    init(null, snapshot.getDetachedState(), false);
+	}
+    }
+
+    @Override
     public PersistentSortedSet<E> clone(boolean uninitialize) {
-    	PersistentSortedSet<E> set = new PersistentSortedSet<E>();
-    	if (wasInitialized() && !uninitialize)
-    		set.init(getCollection(), null, isDirty());
-        return set; 
+	PersistentSortedSet<E> set = new PersistentSortedSet<>();
+	if (wasInitialized() && !uninitialize) {
+	    set.init(getCollection(), null, isDirty());
+	}
+	return set;
     }
 }

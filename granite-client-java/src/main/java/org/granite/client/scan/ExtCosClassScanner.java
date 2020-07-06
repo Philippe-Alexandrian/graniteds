@@ -37,57 +37,60 @@ import net.sf.extcos.spi.ResourceType;
  * @author William DRAI
  */
 public class ExtCosClassScanner implements ClassScanner {
-	
-	public Set<Class<?>> scan(final Set<String> packageNames, Class<? extends Annotation> annotationClass) {
-		ComponentScanner scanner = new ComponentScanner();
-		
-		final String[] basePackageNames = packageNames.toArray(new String[packageNames.size()]);
-		
-		Set<Class<?>> classes = scanner.getClasses(new ComponentQuery() {
-			@Override
-			protected void query() {
-				select(JavaClassResourceType.javaClasses()).from(basePackageNames).returning(allAnnotatedWith(RemoteAlias.class));
-			}
-		});
-		
-		Set<Class<?>> annotatedClasses = new HashSet<Class<?>>();
-		for (Class<?> cls : classes) {
-		    if (cls.isAnnotationPresent(annotationClass))
-		        annotatedClasses.add(cls);
-		}
-		
-		return annotatedClasses;
-	}	
-	
-	public static class JavaClassResourceType implements ResourceType {
-		
-		private static final String JAVA_CLASS_SUFFIX = "class";
-		private static JavaClassResourceType instance;
 
-		/**
-		 * Always instantiate via the {@link #javaClasses()} method.
-		 */
-		private JavaClassResourceType() {
-		}
+    @Override
+    public Set<Class<?>> scan(final Set<String> packageNames, Class<? extends Annotation> annotationClass) {
+	ComponentScanner scanner = new ComponentScanner();
 
-		@Override
-		public String getFileSuffix() {
-			return JAVA_CLASS_SUFFIX;
-		}
+	final String[] basePackageNames = packageNames.toArray(new String[packageNames.size()]);
 
-		/**
-		 * EDSL method
-		 */
-		public static JavaClassResourceType javaClasses() {
-			if (instance == null)
-				instance = new JavaClassResourceType();
+	Set<Class<?>> classes = scanner.getClasses(new ComponentQuery() {
+	    @Override
+	    protected void query() {
+		select(JavaClassResourceType.javaClasses()).from(basePackageNames).returning(allAnnotatedWith(RemoteAlias.class));
+	    }
+	});
 
-			return instance;
-		}
-
-		@Override
-		public ResourceAccessor getResourceAccessor() {
-			return new JavaResourceAccessor();
-		}
+	Set<Class<?>> annotatedClasses = new HashSet<>();
+	for (Class<?> cls : classes) {
+	    if (cls.isAnnotationPresent(annotationClass)) {
+		annotatedClasses.add(cls);
+	    }
 	}
+
+	return annotatedClasses;
+    }
+
+    public static class JavaClassResourceType implements ResourceType {
+
+	private static final String JAVA_CLASS_SUFFIX = "class";
+	private static JavaClassResourceType instance;
+
+	/**
+	 * Always instantiate via the {@link #javaClasses()} method.
+	 */
+	private JavaClassResourceType() {
+	}
+
+	@Override
+	public String getFileSuffix() {
+	    return JAVA_CLASS_SUFFIX;
+	}
+
+	/**
+	 * EDSL method
+	 */
+	public static JavaClassResourceType javaClasses() {
+	    if (instance == null) {
+		instance = new JavaClassResourceType();
+	    }
+
+	    return instance;
+	}
+
+	@Override
+	public ResourceAccessor getResourceAccessor() {
+	    return new JavaResourceAccessor();
+	}
+    }
 }

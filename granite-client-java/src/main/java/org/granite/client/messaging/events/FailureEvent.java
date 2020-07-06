@@ -30,28 +30,29 @@ import org.granite.client.messaging.messages.RequestMessage;
  */
 public class FailureEvent extends AbstractIssueEvent {
 
-	private final Exception cause;
+    private final Exception cause;
 
-	public FailureEvent(RequestMessage request, Exception cause) {
-		super(request);
-		this.cause = cause;
-	}
+    public FailureEvent(RequestMessage request, Exception cause) {
+	super(request);
+	this.cause = cause;
+    }
 
-	@Override
-	public Type getType() {
-		return Type.FAILURE;
-	}
+    @Override
+    public Type getType() {
+	return Type.FAILURE;
+    }
 
     /**
      * Local cause exception
+     * 
      * @return cause exception
      */
-	public Exception getCause() {
-		return cause;
-	}
+    public Exception getCause() {
+	return this.cause;
+    }
 
-	@Override
-	public String toString() {
-		return getClass().getName() + " {cause=" + cause + "}";
-	}
+    @Override
+    public String toString() {
+	return getClass().getName() + " {cause=" + this.cause + "}";
+    }
 }

@@ -31,106 +31,120 @@ import org.granite.config.Config;
  * @author Franck WOLFF
  */
 public class SimpleConfiguration implements Configuration {
-	
-	private String graniteStdConfigPath = SimpleConfiguration.class.getPackage().getName().replace('.', '/') + "/granite-config.xml";
-	private String graniteConfigPath = null;
-	
-	private ClientGraniteConfig graniteConfig = null;
-	private Object servicesConfig = null;
-	
-	private ClientType clientType = ClientType.AS3;
+
+    private String graniteStdConfigPath = SimpleConfiguration.class.getPackage().getName().replace('.', '/') + "/granite-config.xml";
+    private String graniteConfigPath = null;
+
+    private ClientGraniteConfig graniteConfig = null;
+    private Object servicesConfig = null;
+
+    private ClientType clientType = ClientType.AS3;
 
     /**
      * Create a configuration using the default granite-config.xml
      */
-	public SimpleConfiguration() {
-	}
+    public SimpleConfiguration() {
+    }
 
     /**
      * Create a configuration using specified config file paths
+     *
      * @param graniteStdConfigPath path of standard config file
      * @param graniteConfigPath path of custom config file (null if no custom file)
      */
-	public SimpleConfiguration(String graniteStdConfigPath, String graniteConfigPath) {
-		this.graniteStdConfigPath = graniteStdConfigPath;
-		this.graniteConfigPath = graniteConfigPath;
-	}
-	
-	public ClientType getClientType() {
-		return clientType;
-	}
+    public SimpleConfiguration(String graniteStdConfigPath, String graniteConfigPath) {
+	this.graniteStdConfigPath = graniteStdConfigPath;
+	this.graniteConfigPath = graniteConfigPath;
+    }
 
-	public void setClientType(ClientType clientType) {
-		this.clientType = clientType;
-	}
+    @Override
+    public ClientType getClientType() {
+	return this.clientType;
+    }
+
+    @Override
+    public void setClientType(ClientType clientType) {
+	this.clientType = clientType;
+    }
 
     /**
      * Set the path of the standard config file
+     *
      * @param graniteConfigPath path
      */
-	public void setGraniteStdConfigPath(String graniteConfigPath) {
-		this.graniteStdConfigPath = graniteConfigPath;
-	}
+    public void setGraniteStdConfigPath(String graniteConfigPath) {
+	this.graniteStdConfigPath = graniteConfigPath;
+    }
 
     /**
      * Set the path of the custom config file
+     *
      * @param graniteConfigPath path
      */
-	public void setGraniteConfigPath(String graniteConfigPath) {
-		this.graniteConfigPath = graniteConfigPath;
-	}
-
-    public boolean isLoaded() {
-        return graniteConfig != null;
+    public void setGraniteConfigPath(String graniteConfigPath) {
+	this.graniteConfigPath = graniteConfigPath;
     }
-	
-	public void load() {
-		InputStream is = null;
+
+    @Override
+    public boolean isLoaded() {
+	return this.graniteConfig != null;
+    }
+
+    @Override
+    public void load() {
+	InputStream is = null;
+	try {
+	    is = Thread.currentThread().getContextClassLoader().getResourceAsStream(this.graniteStdConfigPath);
+	    if (this.graniteConfigPath != null) {
+		is = Thread.currentThread().getContextClassLoader().getResourceAsStream(this.graniteConfigPath);
+	    }
+	    this.graniteConfig = new ClientGraniteConfig(this.graniteStdConfigPath, is, null, null);
+	    postLoad(this.graniteConfig);
+	    this.servicesConfig = new ClientServicesConfig();
+	} catch (Exception e) {
+	    this.graniteConfig = null;
+	    this.servicesConfig = null;
+	    throw new RuntimeException("Cannot load configuration", e);
+	} finally {
+	    if (is != null) {
 		try {
-			is = Thread.currentThread().getContextClassLoader().getResourceAsStream(graniteStdConfigPath);
-			if (graniteConfigPath != null)
-				is = Thread.currentThread().getContextClassLoader().getResourceAsStream(graniteConfigPath);
-			graniteConfig = new ClientGraniteConfig(graniteStdConfigPath, is, null, null);
-			postLoad(graniteConfig);
-			servicesConfig = new ClientServicesConfig();
+		    is.close();
+		} catch (IOException e) {
+		    // Empty.
 		}
-		catch (Exception e) {
-			graniteConfig = null;
-			servicesConfig = null;
-			throw new RuntimeException("Cannot load configuration", e);
-		}
-		finally {
-			if (is != null) try {
-				is.close();
-			}
-			catch (IOException e) {
-			}
-		}
+	    }
 	}
+    }
 
     /**
      * Can be overriden by subclasses to do some post loading customization of the configuration
-     * @param graniteConfig config object loaded
+     *
+     * @param graniteConfigP config object loaded
      */
-	protected void postLoad(ClientGraniteConfig graniteConfig) {
-	}
+    protected void postLoad(ClientGraniteConfig graniteConfigP) {
+	// Empty.
+    }
 
     /**
      * GraniteConfig object
+     *
      * @return GraniteConfig object
      */
-	@SuppressWarnings("unchecked")
-	public <C extends Config> C getGraniteConfig() {
-		return (C)graniteConfig;
-	}
+    @Override
+    @SuppressWarnings("unchecked")
+    public <C extends Config> C getGraniteConfig() {
+	return (C) this.graniteConfig;
+    }
 
     /**
      * ServicesConfig object
+     *
      * @return ServicesConfig object
      */
-	@SuppressWarnings("unchecked")
-	public <C extends Config> C getServicesConfig() {
-		return (C)servicesConfig;
-	}
+    @Override
+    @SuppressWarnings("unchecked")
+    public <C extends Config> C getServicesConfig() {
+	return (C) this.servicesConfig;
+    }
 
 }

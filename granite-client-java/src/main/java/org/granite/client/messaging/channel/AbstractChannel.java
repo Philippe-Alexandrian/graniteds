@@ -34,75 +34,80 @@ import flex.messaging.messages.Message;
  * @author Franck WOLFF
  */
 public abstract class AbstractChannel<T extends Transport> implements Channel {
-	
-	protected final T transport;
-	protected final String id;
-	protected final URI uri;
-	
-	protected volatile String clientId;
 
-	protected volatile Credentials credentials = null;
-	protected volatile Object transportData = null;
-	
-	public AbstractChannel(T transport, String id, URI uri) {
-		if (transport == null || id == null || uri == null)
-			throw new NullPointerException("Transport, id and uri must be not null");
-		
-		this.transport = transport;
-		this.id = id;
-		this.uri = uri;
+    protected final T transport;
+    protected final String id;
+    protected final URI uri;
+
+    protected volatile String clientId;
+
+    protected volatile Credentials credentials = null;
+    protected volatile Object transportData = null;
+
+    public AbstractChannel(T transport, String id, URI uri) {
+	if ((transport == null) || (id == null) || (uri == null)) {
+	    throw new NullPointerException("Transport, id and uri must be not null");
 	}
 
-	@Override
-	public T getTransport() {
-		return transport;
-	}
+	this.transport = transport;
+	this.id = id;
+	this.uri = uri;
+    }
 
-	@Override
-	public String getId() {
-		return id;
-	}
+    @Override
+    public T getTransport() {
+	return this.transport;
+    }
 
-	@Override
-	public URI getUri() {
-		return uri;
-	}
+    @Override
+    public String getId() {
+	return this.id;
+    }
 
-	public String getClientId() {
-		return clientId;
-	}
+    @Override
+    public URI getUri() {
+	return this.uri;
+    }
 
-	@Override
-	public void setCredentials(Credentials credentials) {
-		this.credentials = credentials;
-	}
-	
-	@Override
-	public Credentials getCredentials() {
-		return credentials;
-	}
+    @Override
+    public String getClientId() {
+	return this.clientId;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <D> D getTransportData() {
-		return (D)transportData;
-	}
+    @Override
+    public void setCredentials(Credentials credentials) {
+	this.credentials = credentials;
+    }
 
-	@Override
-	public void setTransportData(Object data) {
-		this.transportData = data;
-	}
-	
-	public void preconnect() throws ChannelException {		
-	}
-	
-	public TransportMessage createConnectMessage(String id, boolean reconnect) {
-		CommandMessage connectMessage = new CommandMessage();
-		connectMessage.setOperation(CommandMessage.CONNECT_OPERATION);
-		connectMessage.setMessageId(id);
-		connectMessage.setTimestamp(System.currentTimeMillis());
-		connectMessage.setClientId(clientId);
-		
-		return new DefaultTransportMessage<Message[]>(id, !reconnect, false, clientId, null, new Message[] { connectMessage }, null);	
-	}
+    @Override
+    public Credentials getCredentials() {
+	return this.credentials;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <D> D getTransportData() {
+	return (D) this.transportData;
+    }
+
+    @Override
+    public void setTransportData(Object data) {
+	this.transportData = data;
+    }
+
+    @Override
+    public void preconnect() throws ChannelException {
+	// Empty.
+    }
+
+    @Override
+    public TransportMessage createConnectMessage(String idP, boolean reconnect) {
+	CommandMessage connectMessage = new CommandMessage();
+	connectMessage.setOperation(CommandMessage.CONNECT_OPERATION);
+	connectMessage.setMessageId(idP);
+	connectMessage.setTimestamp(System.currentTimeMillis());
+	connectMessage.setClientId(this.clientId);
+
+	return new DefaultTransportMessage<>(idP, !reconnect, false, this.clientId, null, new Message[] { connectMessage }, null);
+    }
 }

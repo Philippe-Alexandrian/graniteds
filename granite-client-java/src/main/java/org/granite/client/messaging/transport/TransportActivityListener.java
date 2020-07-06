@@ -25,4 +25,5 @@ package org.granite.client.messaging.transport;
  * @author Franck WOLFF
  */
 public interface TransportActivityListener {
+    // Empty.
 }

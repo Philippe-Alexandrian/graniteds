@@ -27,37 +27,32 @@ import java.util.Map;
  * @author Franck WOLFF
  */
 public final class PingMessage extends AbstractRequestMessage {
-	
+
     private static final long serialVersionUID = 1L;
-	
-	public PingMessage() {
-	}
 
-	public PingMessage(String clientId) {
-		super(clientId);
-	}
+    public PingMessage() {
+    }
 
-	public PingMessage(
-		String id,
-		String clientId,
-		long timestamp,
-		long timeToLive,
-		Map<String, Object> headers) {
-		
-		super(id, clientId, timestamp, timeToLive, headers);
-	}
+    public PingMessage(String clientId) {
+	super(clientId);
+    }
 
-	@Override
-	public Type getType() {
-		return Type.PING;
-	}
-	
-	@Override
-	public PingMessage copy() {
-		PingMessage message = new PingMessage();
-		
-		copy(message);
-		
-		return message;
-	}
+    public PingMessage(String id, String clientId, long timestamp, long timeToLive, Map<String, Object> headers) {
+
+	super(id, clientId, timestamp, timeToLive, headers);
+    }
+
+    @Override
+    public Type getType() {
+	return Type.PING;
+    }
+
+    @Override
+    public PingMessage copy() {
+	PingMessage message = new PingMessage();
+
+	copy(message);
+
+	return message;
+    }
 }

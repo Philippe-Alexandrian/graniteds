@@ -35,39 +35,38 @@ import org.granite.util.ContentType;
  * @author Franck WOLFF
  */
 public class JMFAMF0MessagingCodec implements MessagingCodec<AMF0Message> {
-	
-	private final ClientSharedContext sharedContext;
 
-	public JMFAMF0MessagingCodec(ClientSharedContext sharedContext) {
-		this.sharedContext = sharedContext;
-	}
+    private final ClientSharedContext sharedContext;
 
-	@Override
-	public ClientType getClientType() {
-		return ClientType.JAVA;
-	}
+    public JMFAMF0MessagingCodec(ClientSharedContext sharedContext) {
+	this.sharedContext = sharedContext;
+    }
 
-	@Override
-	public String getContentType() {
-		return ContentType.JMF_AMF.mimeType();
-	}
+    @Override
+    public ClientType getClientType() {
+	return ClientType.JAVA;
+    }
 
-	@Override
-	public void encode(AMF0Message message, OutputStream output) throws IOException {
-		@SuppressWarnings("all")
-		JMFSerializer serializer = new JMFSerializer(output, sharedContext);
-		serializer.writeObject(message);
-	}
+    @Override
+    public String getContentType() {
+	return ContentType.JMF_AMF.mimeType();
+    }
 
-	@Override
-	public AMF0Message decode(InputStream input) throws IOException {
-		@SuppressWarnings("all")
-		JMFDeserializer deserializer = new JMFDeserializer(input, sharedContext);
-		try {
-			return (AMF0Message)deserializer.readObject();
-		}
-		catch (ClassNotFoundException e) {
-			throw new IOException(e);
-		}
+    @Override
+    public void encode(AMF0Message message, OutputStream output) throws IOException {
+	@SuppressWarnings("all")
+	JMFSerializer serializer = new JMFSerializer(output, this.sharedContext);
+	serializer.writeObject(message);
+    }
+
+    @Override
+    public AMF0Message decode(InputStream input) throws IOException {
+	@SuppressWarnings("all")
+	JMFDeserializer deserializer = new JMFDeserializer(input, this.sharedContext);
+	try {
+	    return (AMF0Message) deserializer.readObject();
+	} catch (ClassNotFoundException e) {
+	    throw new IOException(e);
 	}
+    }
 }

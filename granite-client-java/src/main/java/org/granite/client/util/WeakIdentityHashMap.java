@@ -34,142 +34,166 @@ import java.util.Set;
  * @author William DRAI
  */
 public class WeakIdentityHashMap<K, V> implements Map<K, V> {
-    
-    private final ReferenceQueue<K> queue = new ReferenceQueue<K>();
+
+    final ReferenceQueue<K> queue = new ReferenceQueue<>();
     private Map<IdentityWeakReference, V> map;
 
-    
     public WeakIdentityHashMap() {
-        map = new HashMap<IdentityWeakReference, V>();
+	this.map = new HashMap<>();
     }
-    
+
     public WeakIdentityHashMap(int size) {
-        map = new HashMap<IdentityWeakReference, V>(size);
+	this.map = new HashMap<>(size);
     }
 
+    @Override
     public void clear() {
-        map.clear();
-        reap();
+	this.map.clear();
+	reap();
     }
 
+    @Override
     public boolean containsKey(Object key) {
-        reap();
-        return map.containsKey(new IdentityWeakReference(key));
+	reap();
+	return this.map.containsKey(new IdentityWeakReference(key));
     }
 
-    public boolean containsValue(Object value)  {
-        reap();
-        return map.containsValue(value);
+    @Override
+    public boolean containsValue(Object value) {
+	reap();
+	return this.map.containsValue(value);
     }
 
+    @Override
     public Set<Map.Entry<K, V>> entrySet() {
-        reap();
-        Set<Map.Entry<K, V>> ret = new HashSet<Map.Entry<K, V>>();
-        for (Map.Entry<IdentityWeakReference, V> ref : map.entrySet()) {
-            final K key = ref.getKey().get();
-            final V value = ref.getValue();
-            Map.Entry<K, V> entry = new Map.Entry<K, V>() {
-                public K getKey() {
-                    return key;
-                }
-                public V getValue() {
-                    return value;
-                }
-                public V setValue(V value) {
-                    throw new UnsupportedOperationException();
-                }
-            };
-            ret.add(entry);
-        }
-        return Collections.unmodifiableSet(ret);
+	reap();
+	Set<Map.Entry<K, V>> ret = new HashSet<>();
+	for (Map.Entry<IdentityWeakReference, V> ref : this.map.entrySet()) {
+	    final K key = ref.getKey().get();
+	    final V value = ref.getValue();
+	    Map.Entry<K, V> entry = new Map.Entry<K, V>() {
+		@Override
+		public K getKey() {
+		    return key;
+		}
+
+		@Override
+		public V getValue() {
+		    return value;
+		}
+
+		@Override
+		public V setValue(V value) {
+		    throw new UnsupportedOperationException();
+		}
+	    };
+	    ret.add(entry);
+	}
+	return Collections.unmodifiableSet(ret);
     }
-    
+
+    @Override
     public Set<K> keySet() {
-        reap();
-        Set<K> ret = new HashSet<K>();
-        for (IdentityWeakReference ref : map.keySet())
-            ret.add(ref.get());
-        
-        return Collections.unmodifiableSet(ret);
+	reap();
+	Set<K> ret = new HashSet<>();
+	for (IdentityWeakReference ref : this.map.keySet()) {
+	    ret.add(ref.get());
+	}
+
+	return Collections.unmodifiableSet(ret);
     }
 
+    @Override
     public boolean equals(Object o) {
-        return map.equals(((WeakIdentityHashMap<?, ?>)o).map);
+	return this.map.equals(((WeakIdentityHashMap<?, ?>) o).map);
     }
 
+    @Override
     public V get(Object key) {
-        reap();
-        return map.get(new IdentityWeakReference(key));
-    }
-    public V put(K key, V value) {
-        reap();
-        return map.put(new IdentityWeakReference(key), value);
+	reap();
+	return this.map.get(new IdentityWeakReference(key));
     }
 
+    @Override
+    public V put(K key, V value) {
+	reap();
+	return this.map.put(new IdentityWeakReference(key), value);
+    }
+
+    @Override
     public int hashCode() {
-        reap();
-        return map.hashCode();
+	reap();
+	return this.map.hashCode();
     }
-    
+
+    @Override
     public boolean isEmpty() {
-        reap();
-        return map.isEmpty();
+	reap();
+	return this.map.isEmpty();
     }
-    
+
+    @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-        throw new UnsupportedOperationException();
+	throw new UnsupportedOperationException();
     }
-    
+
+    @Override
     public V remove(Object key) {
-        reap();
-        return map.remove(new IdentityWeakReference(key));
+	reap();
+	return this.map.remove(new IdentityWeakReference(key));
     }
-    
+
+    @Override
     public int size() {
-        reap();
-        return map.size();
+	reap();
+	return this.map.size();
     }
-    
+
+    @Override
     public Collection<V> values() {
-        reap();
-        return map.values();
+	reap();
+	return this.map.values();
     }
 
     private synchronized void reap() {
-        Object zombie = queue.poll();
+	Object zombie = this.queue.poll();
 
-        while (zombie != null) {
-            @SuppressWarnings("unchecked")
-            IdentityWeakReference victim = (IdentityWeakReference)zombie;
-            map.remove(victim);
-            zombie = queue.poll();
-        }
+	while (zombie != null) {
+	    @SuppressWarnings("unchecked")
+	    IdentityWeakReference victim = (IdentityWeakReference) zombie;
+	    this.map.remove(victim);
+	    zombie = this.queue.poll();
+	}
     }
 
     class IdentityWeakReference extends WeakReference<K> {
-        
-        private final int hash;
-        
-        @SuppressWarnings("unchecked")
-        IdentityWeakReference(Object obj) {
-            super((K)obj, queue);
-            hash = System.identityHashCode(obj);
-        }
 
-        public int hashCode() {
-            return hash;
-        }
+	private final int hash;
 
-        public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            
-            @SuppressWarnings("unchecked")
-            IdentityWeakReference ref = (IdentityWeakReference)o;
-            if (this.get() == ref.get())
-                return true;
-            
-            return false;
-        }
+	@SuppressWarnings("unchecked")
+	IdentityWeakReference(Object obj) {
+	    super((K) obj, WeakIdentityHashMap.this.queue);
+	    this.hash = System.identityHashCode(obj);
+	}
+
+	@Override
+	public int hashCode() {
+	    return this.hash;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+	    if (this == o) {
+		return true;
+	    }
+
+	    @SuppressWarnings("unchecked")
+	    IdentityWeakReference ref = (IdentityWeakReference) o;
+	    if (this.get() == ref.get()) {
+		return true;
+	    }
+
+	    return false;
+	}
     }
 }

@@ -41,8 +41,8 @@ public class ClientDataAMF implements ClientData, Externalizable {
     private static final long serialVersionUID = 1L;
 
     private boolean __initialized__ = true;
-	private String __detachedState__ = null;
-    
+    private String __detachedState__ = null;
+
     @Id
     private Long id;
 
@@ -52,49 +52,49 @@ public class ClientDataAMF implements ClientData, Externalizable {
     }
 
     public ClientDataAMF(String value) {
-        this.value = value;
+	this.value = value;
     }
 
     public Long getId() {
-        return id;
+	return this.id;
     }
 
     public void setId(Long id) {
-        this.id = id;
+	this.id = id;
     }
 
+    @Override
     public String getValue() {
-        return value;
+	return this.value;
     }
 
     public void setValue(String value) {
-        this.value = value;
+	this.value = value;
     }
 
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-		out.writeObject(__initialized__);
-		out.writeObject(__detachedState__);
-		if (!__initialized__) {
-			out.writeObject(id);
-			return;
-		}
-		out.writeObject(id);
-		out.writeObject(value);
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+	out.writeObject(this.__initialized__);
+	out.writeObject(this.__detachedState__);
+	if (!this.__initialized__) {
+	    out.writeObject(this.id);
+	    return;
 	}
+	out.writeObject(this.id);
+	out.writeObject(this.value);
+    }
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		__initialized__ = (Boolean)in.readObject();
-		__detachedState__ = (String)in.readObject();
-		if (__initialized__) {
-			Number nid = ((Number)in.readObject());
-			id = nid != null ? nid.longValue() : null;
-			value = (String)in.readObject();
-		}
-		else {
-			Number nid = ((Number)in.readObject());
-			id = nid != null ? nid.longValue() : null;
-		}
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	this.__initialized__ = (Boolean) in.readObject();
+	this.__detachedState__ = (String) in.readObject();
+	if (this.__initialized__) {
+	    Number nid = ((Number) in.readObject());
+	    this.id = nid != null ? nid.longValue() : null;
+	    this.value = (String) in.readObject();
+	} else {
+	    Number nid = ((Number) in.readObject());
+	    this.id = nid != null ? nid.longValue() : null;
 	}
+    }
 }

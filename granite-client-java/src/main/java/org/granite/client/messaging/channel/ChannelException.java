@@ -21,24 +21,23 @@
  */
 package org.granite.client.messaging.channel;
 
-
 public class ChannelException extends Exception {
 
-	private static final long serialVersionUID = 1L;	
-	
-	private final String clientId;
-	
-	public ChannelException(String clientId, String message) {
-		super(message);
-		this.clientId = clientId;
-	}
-	
-	public ChannelException(String clientId, String message, Throwable cause) {
-		super(message, cause);
-		this.clientId = clientId;
-	}
-	
-	public String getClientId() {
-		return clientId;
-	}
+    private static final long serialVersionUID = 1L;
+
+    private final String clientId;
+
+    public ChannelException(String clientId, String message) {
+	super(message);
+	this.clientId = clientId;
+    }
+
+    public ChannelException(String clientId, String message, Throwable cause) {
+	super(message, cause);
+	this.clientId = clientId;
+    }
+
+    public String getClientId() {
+	return this.clientId;
+    }
 }

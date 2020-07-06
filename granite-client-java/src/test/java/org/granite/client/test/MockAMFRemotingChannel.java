@@ -34,11 +34,11 @@ import org.granite.messaging.amf.AMF0Message;
 public class MockAMFRemotingChannel extends AMFRemotingChannel {
 
     public MockAMFRemotingChannel(Transport transport, MessagingCodec<AMF0Message> codec, String id, URI uri, int maxConcurrentRequests) {
-        super(transport, codec, id, uri, maxConcurrentRequests);
+	super(transport, codec, id, uri, maxConcurrentRequests);
     }
 
-	public TransportMessage createMessage(AsyncToken token) throws UnsupportedEncodingException {
-		return createTransportMessage(token);
-	}
+    public TransportMessage createMessage(AsyncToken token) throws UnsupportedEncodingException {
+	return createTransportMessage(token);
+    }
 
 }

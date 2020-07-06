@@ -21,10 +21,9 @@
  */
 package org.granite.client.messaging.channel;
 
-
 public interface ChannelStatusNotifier {
-	
-	public void addListener(ChannelStatusListener listener);
-	
-	public void removeListener(ChannelStatusListener listener);
+
+    public void addListener(ChannelStatusListener listener);
+
+    public void removeListener(ChannelStatusListener listener);
 }

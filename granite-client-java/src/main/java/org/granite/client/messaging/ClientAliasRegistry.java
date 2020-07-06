@@ -30,64 +30,70 @@ import org.granite.client.platform.Platform;
 import org.granite.logging.Logger;
 import org.granite.messaging.AliasRegistry;
 
-
 /**
- * Client-side implementation of AliasRegistry that scan specified packaged to find classes
- * annotated with {@link org.granite.client.messaging.RemoteAlias}
+ * Client-side implementation of AliasRegistry that scan specified packaged to find classes annotated with {@link org.granite.client.messaging.RemoteAlias}
  *
  * @author William DRAI
  */
 public class ClientAliasRegistry implements AliasRegistry {
-	
-	private static final Logger log = Logger.getLogger(ClientAliasRegistry.class);
-	
-	private Map<String, String> serverToClientAliases = new HashMap<String, String>();
-	private Map<String, String> clientToServerAliases = new HashMap<String, String>();
-	
-	public void scan(Set<String> packageNames) {
-		if (packageNames != null && !packageNames.isEmpty()) {
-			ClassScanner scanner = Platform.getInstance().newClassScanner();
-			
-			Set<Class<?>> aliases = scanner.scan(packageNames, RemoteAlias.class);
-			for (Class<?> alias : aliases)
-				registerAlias(alias);
-			
-			log.debug("Using remote aliases: %s", aliases);
-		}
+
+    private static final Logger log = Logger.getLogger(ClientAliasRegistry.class);
+
+    private Map<String, String> serverToClientAliases = new HashMap<>();
+    private Map<String, String> clientToServerAliases = new HashMap<>();
+
+    @Override
+    public void scan(Set<String> packageNames) {
+	if ((packageNames != null) && !packageNames.isEmpty()) {
+	    ClassScanner scanner = Platform.getInstance().newClassScanner();
+
+	    Set<Class<?>> aliases = scanner.scan(packageNames, RemoteAlias.class);
+	    for (Class<?> alias : aliases) {
+		registerAlias(alias);
+	    }
+
+	    log.debug("Using remote aliases: %s", aliases);
 	}
-	
-	public void registerAlias(Class<?> remoteAliasAnnotatedClass) {
-		RemoteAlias remoteAlias = remoteAliasAnnotatedClass.getAnnotation(RemoteAlias.class);
-		if (remoteAlias == null)
-			throw new IllegalArgumentException(remoteAliasAnnotatedClass.getName() + " isn't annotated with " + RemoteAlias.class.getName());
-		registerAlias(remoteAliasAnnotatedClass.getName(), remoteAlias.value());
+    }
+
+    public void registerAlias(Class<?> remoteAliasAnnotatedClass) {
+	RemoteAlias remoteAlias = remoteAliasAnnotatedClass.getAnnotation(RemoteAlias.class);
+	if (remoteAlias == null) {
+	    throw new IllegalArgumentException(remoteAliasAnnotatedClass.getName() + " isn't annotated with " + RemoteAlias.class.getName());
+	}
+	registerAlias(remoteAliasAnnotatedClass.getName(), remoteAlias.value());
+    }
+
+    public void registerAliases(Class<?>... remoteAliasAnnotatedClasses) {
+	for (Class<?> remoteAliasAnnotatedClass : remoteAliasAnnotatedClasses) {
+	    registerAlias(remoteAliasAnnotatedClass);
+	}
+    }
+
+    public void registerAlias(String clientClassName, String serverClassName) {
+	if ((clientClassName.length() == 0) || (serverClassName.length() == 0)) {
+	    throw new IllegalArgumentException("Empty class name: " + clientClassName + " / " + serverClassName);
 	}
 
-	public void registerAliases(Class<?>... remoteAliasAnnotatedClasses) {
-		for (Class<?> remoteAliasAnnotatedClass : remoteAliasAnnotatedClasses)
-			registerAlias(remoteAliasAnnotatedClass);
-	}
+	this.clientToServerAliases.put(clientClassName, serverClassName);
+	this.serverToClientAliases.put(serverClassName, clientClassName);
+    }
 
-	public void registerAlias(String clientClassName, String serverClassName) {
-		if (clientClassName.length() == 0 || serverClassName.length() == 0)
-			throw new IllegalArgumentException("Empty class name: " + clientClassName + " / " + serverClassName);
-		
-		clientToServerAliases.put(clientClassName, serverClassName);
-		serverToClientAliases.put(serverClassName, clientClassName);
+    public void registerAliases(Map<String, String> clientToServerAliasesP) {
+	for (Map.Entry<String, String> clientToServerAlias : clientToServerAliasesP.entrySet()) {
+	    registerAlias(clientToServerAlias.getKey(), clientToServerAlias.getValue());
 	}
+    }
 
-	public void registerAliases(Map<String, String> clientToServerAliases) {
-		for (Map.Entry<String, String> clientToServerAlias : clientToServerAliases.entrySet())
-			registerAlias(clientToServerAlias.getKey(), clientToServerAlias.getValue());
-	}
+    @Override
+    public String getAliasForType(String className) {
+	String alias = this.clientToServerAliases.get(className);
+	return (alias != null ? alias : className);
+    }
 
-	public String getAliasForType(String className) {
-		String alias = clientToServerAliases.get(className);
-		return (alias != null ? alias : className);
-	}
-	
-	public String getTypeForAlias(String alias) {
-		String className = serverToClientAliases.get(alias);
-		return className != null ? className : alias;
-	}
+    @Override
+    public String getTypeForAlias(String alias) {
+	String className = this.serverToClientAliases.get(alias);
+	return className != null ? className : alias;
+    }
 }

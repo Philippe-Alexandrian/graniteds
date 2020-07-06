@@ -35,23 +35,26 @@ public class Document implements Serializable {
     private byte[] content;
 
     public String getName() {
-        return name;
+	return this.name;
     }
+
     public void setName(String name) {
-        this.name = name;
+	this.name = name;
     }
 
     public String getContentType() {
-        return contentType;
+	return this.contentType;
     }
+
     public void setContentType(String contentType) {
-        this.contentType = contentType;
+	this.contentType = contentType;
     }
 
     public byte[] getContent() {
-        return content;
+	return this.content;
     }
+
     public void setContent(byte[] content) {
-        this.content = content;
+	this.content = content;
     }
 }

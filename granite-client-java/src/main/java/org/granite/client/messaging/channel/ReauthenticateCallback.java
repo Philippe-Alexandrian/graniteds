@@ -21,8 +21,7 @@
  */
 package org.granite.client.messaging.channel;
 
-
 public interface ReauthenticateCallback {
-	
-	public void reauthenticate() throws ChannelException;
+
+    public void reauthenticate() throws ChannelException;
 }

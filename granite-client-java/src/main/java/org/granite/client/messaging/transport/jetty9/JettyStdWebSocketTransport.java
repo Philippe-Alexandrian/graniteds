@@ -26,7 +26,6 @@ import javax.websocket.WebSocketContainer;
 import org.eclipse.jetty.websocket.jsr356.JettyClientContainerProvider;
 import org.granite.client.messaging.transport.websocket.WebSocketTransport;
 
-
 /**
  * @author William DRAI
  */
@@ -34,7 +33,7 @@ public class JettyStdWebSocketTransport extends WebSocketTransport {
 
     @Override
     protected WebSocketContainer createContainer() {
-        return JettyClientContainerProvider.getWebSocketContainer();
+	return JettyClientContainerProvider.getWebSocketContainer();
     }
 
     @Override

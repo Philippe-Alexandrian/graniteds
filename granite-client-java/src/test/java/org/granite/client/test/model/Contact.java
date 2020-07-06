@@ -38,44 +38,50 @@ public class Contact extends AbstractEntity {
     private Address address;
 
     public Person getPerson() {
-        return person;
+	return this.person;
     }
+
     public void setPerson(Person person) {
-        this.person = person;
+	this.person = person;
     }
 
     public Address getAddress() {
-        return address;
+	return this.address;
     }
+
     public void setAddress(Address address) {
-        this.address = address;
+	this.address = address;
     }
 
     public String getEmail() {
-        return email;
+	return this.email;
     }
+
     public void setEmail(String email) {
-        this.email = email;
+	this.email = email;
     }
 
     public String getFax() {
-        return fax;
+	return this.fax;
     }
+
     public void setFax(String fax) {
-        this.fax = fax;
+	this.fax = fax;
     }
 
     public String getMobile() {
-        return mobile;
+	return this.mobile;
     }
+
     public void setMobile(String mobile) {
-        this.mobile = mobile;
+	this.mobile = mobile;
     }
 
     public String getPhone() {
-        return phone;
+	return this.phone;
     }
+
     public void setPhone(String phone) {
-        this.phone = phone;
+	this.phone = phone;
     }
 }

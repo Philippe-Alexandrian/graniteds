@@ -31,22 +31,23 @@ import org.granite.client.messaging.channel.ResponseMessageFuture;
 import org.granite.client.messaging.messages.requests.InvocationMessage;
 
 /**
- * RemoteService allows to call a remote service using RPC style
- * Calling a service is asynchronous and won't block the thread initiating the call.
+ * RemoteService allows to call a remote service using RPC style Calling a service is asynchronous and won't block the thread initiating the call.
  *
  * <pre>
- * {@code
- * RemoteService remoteService = new RemoteService(remotingChannel, "myService");
- * remoteService.newInvocation("myMethod", arg1, arg2).invoke();
+ * {
+ *     &#64;code
+ *     RemoteService remoteService = new RemoteService(remotingChannel, "myService");
+ *     remoteService.newInvocation("myMethod", arg1, arg2).invoke();
  * }
  * </pre>
  *
  * It is also possible to chain multiple invocations in one single call:
  *
  * <pre>
- * {@code
- * RemoteService remoteService = new RemoteService(remotingChannel, "myService");
- * remoteService.newInvocation("myMethod", arg1, arg2).appendInvocation("myMethod2", arg3).invoke();
+ * {
+ *     &#64;code
+ *     RemoteService remoteService = new RemoteService(remotingChannel, "myService");
+ *     remoteService.newInvocation("myMethod", arg1, arg2).appendInvocation("myMethod2", arg3).invoke();
  * }
  * </pre>
  *
@@ -54,138 +55,155 @@ import org.granite.client.messaging.messages.requests.InvocationMessage;
  */
 public class RemoteService {
 
-	private final Channel channel;
-	private final String id;
+    final Channel channel;
+    final String id;
 
     /**
      * Create a remote service for the specified channel and destination
+     *
      * @param channel messaging channel
      * @param id remote destination name
      */
-	public RemoteService(Channel channel, String id) {
-		if (channel == null || id == null)
-			throw new NullPointerException("channel and id cannot be null");
-		this.channel = channel;
-		this.id = id;
+    public RemoteService(Channel channel, String id) {
+	if ((channel == null) || (id == null)) {
+	    throw new NullPointerException("channel and id cannot be null");
 	}
+	this.channel = channel;
+	this.id = id;
+    }
 
     /**
      * Remoting channel
+     *
      * @return channel
      */
-	public Channel getChannel() {
-		return channel;
-	}
+    public Channel getChannel() {
+	return this.channel;
+    }
 
     /**
      * Destination id
+     *
      * @return destination id
      */
-	public String getId() {
-		return id;
-	}
+    public String getId() {
+	return this.id;
+    }
 
     /**
      * Create an invocation for this service
+     *
      * @param method remote method name
      * @param parameters arguments to send
      * @return fluent invocation object
      */
-	public RemoteServiceInvocation newInvocation(String method, Object...parameters) {
-		return new RemoteServiceInvocation(this, method, parameters);
+    public RemoteServiceInvocation newInvocation(String method, Object... parameters) {
+	return new RemoteServiceInvocation(this, method, parameters);
+    }
+
+    public static interface RemoteServiceInvocationChain {
+
+	/**
+	 * Append a new invocation to the current chain of invocations
+	 *
+	 * @param method remote method name
+	 * @param parameters arguments to send
+	 * @return fluent invocation object
+	 */
+	RemoteServiceInvocationChain appendInvocation(String method, Object... parameters);
+
+	/**
+	 * Execute the chain of invocations
+	 *
+	 * @return future that will be triggered when the chain of invocations has been processed
+	 */
+	ResponseMessageFuture invoke();
+    }
+
+    public static class RemoteServiceInvocation implements RemoteServiceInvocationChain {
+
+	private final RemoteService remoteService;
+	private final InvocationMessage request;
+
+	private long timeToLive = 0L;
+	private List<ResponseListener> listeners = new ArrayList<>();
+
+	public RemoteServiceInvocation(RemoteService remoteService, String method, Object... parameters) {
+	    if (remoteService == null) {
+		throw new NullPointerException("remoteService cannot be null");
+	    }
+	    this.remoteService = remoteService;
+	    this.request = new InvocationMessage(null, remoteService.id, method, parameters);
 	}
-	
-	public static interface RemoteServiceInvocationChain {
 
-        /**
-         * Append a new invocation to the current chain of invocations
-         * @param method remote method name
-         * @param parameters arguments to send
-         * @return fluent invocation object
-         */
-		RemoteServiceInvocationChain appendInvocation(String method, Object...parameters);
-
-        /**
-         * Execute the chain of invocations
-         * @return future that will be triggered when the chain of invocations has been processed
-         */
-		ResponseMessageFuture invoke();
+	/**
+	 * Register a listener for the current invocation
+	 *
+	 * @param listener listener
+	 * @return fluent invocation object
+	 */
+	public RemoteServiceInvocation addListener(ResponseListener listener) {
+	    if (listener != null) {
+		this.listeners.add(listener);
+	    }
+	    return this;
 	}
-	
-	public static class RemoteServiceInvocation implements RemoteServiceInvocationChain {
-		
-		private final RemoteService remoteService;
-		private final InvocationMessage request;
-		
-		private long timeToLive = 0L;
-		private List<ResponseListener> listeners = new ArrayList<ResponseListener>();
-		
-		public RemoteServiceInvocation(RemoteService remoteService, String method, Object...parameters) {
-			if (remoteService == null)
-				throw new NullPointerException("remoteService cannot be null");
-			this.remoteService = remoteService;
-			this.request = new InvocationMessage(null, remoteService.id, method, parameters);
-		}
 
-        /**
-         * Register a listener for the current invocation
-         * @param listener listener
-         * @return fluent invocation object
-         */
-		public RemoteServiceInvocation addListener(ResponseListener listener) {
-			if (listener != null)
-				this.listeners.add(listener);
-			return this;
-		}
-
-        /**
-         * Registers many listeners for the current invocation
-         * @param listeners array of listener
-         * @return fluent invocation object
-         */
-		public RemoteServiceInvocation addListeners(ResponseListener...listeners) {
-			if (listeners != null && listeners.length > 0)
-				this.listeners.addAll(Arrays.asList(listeners));
-			return this;
-		}
-
-        /**
-         * Set the time to live for the current invocation
-         * @param timeToLiveMillis time to live in milliseconds
-         * @return fluent invocation object
-         */
-		public RemoteServiceInvocation setTimeToLive(long timeToLiveMillis) {
-			return setTimeToLive(timeToLiveMillis, TimeUnit.MILLISECONDS);
-		}
-
-        /**
-         * Set the time to live in any unit for the current invocation
-         * @param timeToLive time to live value
-         * @param unit time to live unit
-         * @return fluent invocation object
-         */
-		public RemoteServiceInvocation setTimeToLive(long timeToLive, TimeUnit unit) {
-			if (timeToLive < 0)
-				throw new IllegalArgumentException("timeToLive cannot be negative");
-			if (unit == null)
-				throw new NullPointerException("unit cannot be null");
-			this.timeToLive = unit.toMillis(timeToLive);
-			return this;
-		}
-
-		@Override
-		public RemoteServiceInvocationChain appendInvocation(String method, Object...parameters) {
-			InvocationMessage message = request;
-			while (message.getNext() != null)
-				message = message.getNext();
-			message.setNext(new InvocationMessage(null, remoteService.id, method, parameters));
-			return this;
-		}
-		
-		@Override
-		public ResponseMessageFuture invoke() {
-			request.setTimeToLive(timeToLive);
-			return remoteService.channel.send(request, listeners.toArray(new ResponseListener[listeners.size()]));
-		}
+	/**
+	 * Registers many listeners for the current invocation
+	 *
+	 * @param listenersP array of listener
+	 * @return fluent invocation object
+	 */
+	public RemoteServiceInvocation addListeners(ResponseListener... listenersP) {
+	    if ((listenersP != null) && (listenersP.length > 0)) {
+		this.listeners.addAll(Arrays.asList(listenersP));
+	    }
+	    return this;
 	}
+
+	/**
+	 * Set the time to live for the current invocation
+	 *
+	 * @param timeToLiveMillis time to live in milliseconds
+	 * @return fluent invocation object
+	 */
+	public RemoteServiceInvocation setTimeToLive(long timeToLiveMillis) {
+	    return setTimeToLive(timeToLiveMillis, TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * Set the time to live in any unit for the current invocation
+	 *
+	 * @param timeToLive time to live value
+	 * @param unit time to live unit
+	 * @return fluent invocation object
+	 */
+	public RemoteServiceInvocation setTimeToLive(long timeToLive, TimeUnit unit) {
+	    if (timeToLive < 0) {
+		throw new IllegalArgumentException("timeToLive cannot be negative");
+	    }
+	    if (unit == null) {
+		throw new NullPointerException("unit cannot be null");
+	    }
+	    this.timeToLive = unit.toMillis(timeToLive);
+	    return this;
+	}
+
+	@Override
+	public RemoteServiceInvocationChain appendInvocation(String method, Object... parameters) {
+	    InvocationMessage message = this.request;
+	    while (message.getNext() != null) {
+		message = message.getNext();
+	    }
+	    message.setNext(new InvocationMessage(null, this.remoteService.id, method, parameters));
+	    return this;
+	}
+
+	@Override
+	public ResponseMessageFuture invoke() {
+	    this.request.setTimeToLive(this.timeToLive);
+	    return this.remoteService.channel.send(this.request, this.listeners.toArray(new ResponseListener[this.listeners.size()]));
+	}
+    }
 }

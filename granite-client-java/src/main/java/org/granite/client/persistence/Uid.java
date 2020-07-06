@@ -32,6 +32,7 @@ import java.lang.annotation.Target;
  * @author Franck WOLFF
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.FIELD})
+@Target({ ElementType.METHOD, ElementType.FIELD })
 public @interface Uid {
+    // Empty.
 }

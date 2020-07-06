@@ -32,6 +32,7 @@ import java.lang.annotation.Target;
  * @author Franck WOLFF
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
+@Target({ ElementType.TYPE })
 public @interface Entity {
+    // Empty.
 }

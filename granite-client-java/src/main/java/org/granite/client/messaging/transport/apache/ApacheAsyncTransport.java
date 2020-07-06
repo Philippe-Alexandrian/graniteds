@@ -51,209 +51,206 @@ import org.granite.util.PublicByteArrayOutputStream;
  * @author Franck WOLFF
  */
 public class ApacheAsyncTransport extends AbstractTransport<Object> {
-	
-	private static final Logger log = Logger.getLogger(ApacheAsyncTransport.class);
 
-	private CloseableHttpAsyncClient httpClient = null;
-	private RequestConfig defaultRequestConfig = null;
-	private BasicCookieStore cookieStore = new BasicCookieStore();
-	
-	public ApacheAsyncTransport() {
-	}
+    private static final Logger log = Logger.getLogger(ApacheAsyncTransport.class);
 
-	public void configure(HttpAsyncClientBuilder clientBuilder) {
-		// Can be overwritten...
-	}
+    private CloseableHttpAsyncClient httpClient = null;
+    private RequestConfig defaultRequestConfig = null;
+    private BasicCookieStore cookieStore = new BasicCookieStore();
 
-	public RequestConfig getDefaultRequestConfig() {
-		return defaultRequestConfig;
-	}
+    public ApacheAsyncTransport() {
+    }
 
-	public void setDefaultRequestConfig(RequestConfig defaultRequestConfig) {
-		this.defaultRequestConfig = defaultRequestConfig;
-	}
+    public void configure(HttpAsyncClientBuilder clientBuilder) {
+	// Can be overwritten...
+    }
 
-	protected synchronized CloseableHttpAsyncClient getCloseableHttpAsyncClient() {
-		return httpClient;
-	}
+    public RequestConfig getDefaultRequestConfig() {
+	return this.defaultRequestConfig;
+    }
 
+    public void setDefaultRequestConfig(RequestConfig defaultRequestConfig) {
+	this.defaultRequestConfig = defaultRequestConfig;
+    }
+
+    protected synchronized CloseableHttpAsyncClient getCloseableHttpAsyncClient() {
+	return this.httpClient;
+    }
+
+    @Override
     public boolean isReconnectAfterReceive() {
-        return true;
+	return true;
     }
 
+    @Override
     public boolean isDisconnectAfterAuthenticationFailure() {
-        return false;
+	return false;
     }
 
-	@Override
-	public synchronized boolean start() {
-		if (httpClient != null)
-			return true;
-		
-		log.info("Starting Apache HttpAsyncClient transport...");
-		
-		try {
-			if (defaultRequestConfig == null)
-				defaultRequestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY).build();
-			
-			HttpAsyncClientBuilder httpClientBuilder = HttpAsyncClients.custom();
-			httpClientBuilder.setDefaultCookieStore(cookieStore);
-			httpClientBuilder.setDefaultRequestConfig(defaultRequestConfig);
-			configure(httpClientBuilder);
-			httpClient = httpClientBuilder.build();
-			
-			httpClient.start();
-			
-			log.info("Apache HttpAsyncClient transport started.");
-			return true;
-		}
-		catch (Exception e) {
-			httpClient = null;
-			getStatusHandler().handleException(new TransportException("Could not start Apache HttpAsyncClient", e));
-
-			log.error(e, "Apache HttpAsyncClient failed to start.");
-			return false;
-		}
+    @Override
+    public synchronized boolean start() {
+	if (this.httpClient != null) {
+	    return true;
 	}
 
-	@Override
-	public synchronized boolean isStarted() {
-		return httpClient != null;
+	log.info("Starting Apache HttpAsyncClient transport...");
+
+	try {
+	    if (this.defaultRequestConfig == null) {
+		this.defaultRequestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY).build();
+	    }
+
+	    HttpAsyncClientBuilder httpClientBuilder = HttpAsyncClients.custom();
+	    httpClientBuilder.setDefaultCookieStore(this.cookieStore);
+	    httpClientBuilder.setDefaultRequestConfig(this.defaultRequestConfig);
+	    configure(httpClientBuilder);
+	    this.httpClient = httpClientBuilder.build();
+
+	    this.httpClient.start();
+
+	    log.info("Apache HttpAsyncClient transport started.");
+	    return true;
+	} catch (Exception e) {
+	    this.httpClient = null;
+	    getStatusHandler().handleException(new TransportException("Could not start Apache HttpAsyncClient", e));
+
+	    log.error(e, "Apache HttpAsyncClient failed to start.");
+	    return false;
+	}
+    }
+
+    @Override
+    public synchronized boolean isStarted() {
+	return this.httpClient != null;
+    }
+
+    @Override
+    public TransportFuture send(final Channel channel, final TransportMessage message) throws TransportException {
+	CloseableHttpAsyncClient httpClient = getCloseableHttpAsyncClient();
+	if (httpClient == null) {
+	    TransportException e = new TransportStateException("Apache HttpAsyncClient not started");
+	    getStatusHandler().handleException(e);
+	    throw e;
 	}
 
-	@Override
-	public TransportFuture send(final Channel channel, final TransportMessage message) throws TransportException {
-		CloseableHttpAsyncClient httpClient = getCloseableHttpAsyncClient();
-	    if (httpClient == null) {
-	    	TransportException e = new TransportStateException("Apache HttpAsyncClient not started");
-	    	getStatusHandler().handleException(e);
-	    	throw e;
-		}
-	    
-		if (!message.isConnect())
-			getStatusHandler().handleIO(true);
-		
-		try {
-		    HttpPost request = new HttpPost(channel.getUri());
-			request.setHeader("Content-Type", message.getContentType());
-			request.setHeader("GDSClientType", message.getClientType().toString());
-			
-			PublicByteArrayOutputStream os = new PublicByteArrayOutputStream(512);
-			try {
-				message.encode(os);
-			}
-			catch (IOException e) {
-				throw new TransportException("Message serialization failed: " + message.getId(), e);
-			}
-			request.setEntity(new ByteArrayEntity(os.getBytes(), 0, os.size()));
-			
-			final Future<HttpResponse> future = httpClient.execute(request, new FutureCallback<HttpResponse>() {
-	
-	            public void completed(HttpResponse response) {
-	            	if (!message.isConnect())
-	            		getStatusHandler().handleIO(false);
-	            	
-	                if (message.isDisconnect()) {
-	                	channel.onDisconnect();
-	                	return;
-	                }
-	            	
-	            	if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-	            		channel.onError(message, new TransportHttpStatusException(
-	            			response.getStatusLine().getStatusCode(),
-	            			response.getStatusLine().getReasonPhrase())
-	            		);
-	            		return;
-	            	}
-	            	
-	        		InputStream is = null;
-	        		try {
-	        			is = response.getEntity().getContent();
-	        			channel.onMessage(message, is);
-	        		}
-	        		catch (Exception e) {
-		            	getStatusHandler().handleException(new TransportIOException(message, "Could not deserialize message", e));
-					}
-	        		finally {
-	        			if (is != null) try {
-	        				is.close();
-	        			}
-	        			catch (Exception e) {
-	        			}
-	        		}
-	            }
-	
-	            public void failed(Exception e) {
-	            	if (!message.isConnect())
-	            		getStatusHandler().handleIO(false);
-	            	
-	                if (message.isDisconnect()) {
-	                	channel.onDisconnect();
-	                	return;
-	                }
-	                
-                	channel.onError(message, e);
-                	getStatusHandler().handleException(new TransportIOException(message, "Request failed", e));
-	            }
-	
-	            public void cancelled() {
-	            	if (!message.isConnect())
-	            		getStatusHandler().handleIO(false);
-	            	
-	                if (message.isDisconnect()) {
-	                	channel.onDisconnect();
-	                	return;
-	                }
-	            	
-	            	channel.onCancelled(message);
-	            }
-	        });
-			
-			return new TransportFuture() {
-				@Override
-				public boolean cancel() {
-					boolean cancelled = false;
-					try {
-						cancelled = future.cancel(true);
-					}
-					catch (Exception e) {
-						log.error(e, "Cancel request failed");
-					}
-					return cancelled;
-				}
-			};
-		}
-		catch (Exception e) {
-        	if (!message.isConnect())
-        		getStatusHandler().handleIO(false);
-			
-			TransportIOException f = new TransportIOException(message, "Request failed", e);
-        	getStatusHandler().handleException(f);
-			throw f;
-		}
+	if (!message.isConnect()) {
+	    getStatusHandler().handleIO(true);
 	}
 
-	@Override
-	public synchronized void stop() {
-		if (httpClient == null)
+	try {
+	    HttpPost request = new HttpPost(channel.getUri());
+	    request.setHeader("Content-Type", message.getContentType());
+	    request.setHeader("GDSClientType", message.getClientType().toString());
+
+	    PublicByteArrayOutputStream os = new PublicByteArrayOutputStream(512);
+	    try {
+		message.encode(os);
+	    } catch (IOException e) {
+		throw new TransportException("Message serialization failed: " + message.getId(), e);
+	    }
+	    request.setEntity(new ByteArrayEntity(os.getBytes(), 0, os.size()));
+
+	    final Future<HttpResponse> future = httpClient.execute(request, new FutureCallback<HttpResponse>() {
+
+		public void completed(HttpResponse response) {
+		    if (!message.isConnect()) {
+			getStatusHandler().handleIO(false);
+		    }
+
+		    if (message.isDisconnect()) {
+			channel.onDisconnect();
 			return;
-		
-		log.info("Stopping Apache HttpAsyncClient transport...");
+		    }
 
-		super.stop();
-		
+		    if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+			channel.onError(message, new TransportHttpStatusException(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
+			return;
+		    }
+
+		    InputStream is = null;
+		    try {
+			is = response.getEntity().getContent();
+			channel.onMessage(message, is);
+		    } catch (Exception e) {
+			getStatusHandler().handleException(new TransportIOException(message, "Could not deserialize message", e));
+		    } finally {
+			if (is != null) {
+			    try {
+				is.close();
+			    } catch (Exception e) {
+			    }
+			}
+		    }
+		}
+
+		public void failed(Exception e) {
+		    if (!message.isConnect()) {
+			getStatusHandler().handleIO(false);
+		    }
+
+		    if (message.isDisconnect()) {
+			channel.onDisconnect();
+			return;
+		    }
+
+		    channel.onError(message, e);
+		    getStatusHandler().handleException(new TransportIOException(message, "Request failed", e));
+		}
+
+		public void cancelled() {
+		    if (!message.isConnect()) {
+			getStatusHandler().handleIO(false);
+		    }
+
+		    if (message.isDisconnect()) {
+			channel.onDisconnect();
+			return;
+		    }
+
+		    channel.onCancelled(message);
+		}
+	    });
+
+	    return () -> {
+		boolean cancelled = false;
 		try {
-			httpClient.close();
+		    cancelled = future.cancel(true);
+		} catch (Exception e) {
+		    log.error(e, "Cancel request failed");
 		}
-		catch (Exception e) {
-			getStatusHandler().handleException(new TransportException("Could not stop Apache HttpAsyncClient", e));
+		return cancelled;
+	    };
+	} catch (Exception e) {
+	    if (!message.isConnect()) {
+		getStatusHandler().handleIO(false);
+	    }
 
-			log.error(e, "Apache HttpAsyncClient failed to stop properly.");
-		}
-		finally {
-			httpClient = null;
-		}
-		
-		log.info("Apache HttpAsyncClient transport stopped.");
+	    TransportIOException f = new TransportIOException(message, "Request failed", e);
+	    getStatusHandler().handleException(f);
+	    throw f;
 	}
+    }
+
+    @Override
+    public synchronized void stop() {
+	if (this.httpClient == null) {
+	    return;
+	}
+
+	log.info("Stopping Apache HttpAsyncClient transport...");
+
+	super.stop();
+
+	try {
+	    this.httpClient.close();
+	} catch (Exception e) {
+	    getStatusHandler().handleException(new TransportException("Could not stop Apache HttpAsyncClient", e));
+
+	    log.error(e, "Apache HttpAsyncClient failed to stop properly.");
+	} finally {
+	    this.httpClient = null;
+	}
+
+	log.info("Apache HttpAsyncClient transport stopped.");
+    }
 }

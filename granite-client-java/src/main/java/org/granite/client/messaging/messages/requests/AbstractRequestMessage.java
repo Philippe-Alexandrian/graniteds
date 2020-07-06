@@ -31,22 +31,17 @@ import org.granite.client.messaging.messages.RequestMessage;
  */
 public abstract class AbstractRequestMessage extends AbstractMessage implements RequestMessage {
 
-	private static final long serialVersionUID = 1L;
-	
-	public AbstractRequestMessage() {
-	}
+    private static final long serialVersionUID = 1L;
 
-	public AbstractRequestMessage(String clientId) {
-		super(clientId);
-	}
+    public AbstractRequestMessage() {
+    }
 
-	public AbstractRequestMessage(
-		String id,
-		String clientId,
-		long timestamp,
-		long timeToLive,
-		Map<String, Object> headers) {
-		
-		super(id, clientId, timestamp, timeToLive, headers);
-	}
+    public AbstractRequestMessage(String clientId) {
+	super(clientId);
+    }
+
+    public AbstractRequestMessage(String id, String clientId, long timestamp, long timeToLive, Map<String, Object> headers) {
+
+	super(id, clientId, timestamp, timeToLive, headers);
+    }
 }

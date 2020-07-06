@@ -35,103 +35,122 @@ import org.granite.messaging.persistence.PersistentCollectionSnapshot;
 public class PersistentList<E> extends AbstractPersistentSimpleCollection<E, List<E>> implements List<E> {
 
     private static final long serialVersionUID = 1L;
-	
-	public PersistentList() {
-	}
 
-	public PersistentList(boolean initialized) {
-		this(initialized ? new ArrayList<E>() : null, false);
-	}
+    public PersistentList() {
+    }
 
-	public PersistentList(List<E> collection) {
-		this(collection, true);
-	}
+    public PersistentList(boolean initialized) {
+	this(initialized ? new ArrayList<E>() : null, false);
+    }
 
-	public PersistentList(List<E> collection, boolean clone) {
-		if (collection != null)
-			init((clone ? new ArrayList<E>(collection) : collection), null, false);
-	}
-	
-	@Override
-	public void doInitialize(List<E> list, boolean empty) {
-		init(empty ? new ArrayList<E>() : list, null, false);
-	}
-	
-	public boolean addAll(int index, Collection<? extends E> c) {
-		checkInitializedWrite();
-		if (getCollection().addAll(index, c)) {
-			dirty();
-			return true;
-		}
-		return false;
-	}
+    public PersistentList(List<E> collection) {
+	this(collection, true);
+    }
 
-	public E get(int index) {
-		if (!checkInitializedRead())
-			return null;
-		return getCollection().get(index);
+    public PersistentList(List<E> collection, boolean clone) {
+	if (collection != null) {
+	    init((clone ? new ArrayList<>(collection) : collection), null, false);
 	}
+    }
 
-	public E set(int index, E element) {
-		checkInitializedWrite();
-		E previousElement = getCollection().set(index, element);
-		if (previousElement == null ? element != null : !previousElement.equals(element))
-			dirty();
-		return previousElement;
-	}
+    @Override
+    public void doInitialize(List<E> list, boolean empty) {
+	init(empty ? new ArrayList<E>() : list, null, false);
+    }
 
-	public void add(int index, E element) {
-		checkInitializedWrite();
-		getCollection().add(index, element);
-		dirty();
+    @Override
+    public boolean addAll(int index, Collection<? extends E> c) {
+	checkInitializedWrite();
+	if (getCollection().addAll(index, c)) {
+	    dirty();
+	    return true;
 	}
+	return false;
+    }
 
-	public E remove(int index) {
-		checkInitializedWrite();
-		E previousElement = getCollection().remove(index);
-		dirty();
-		return previousElement;
+    @Override
+    public E get(int index) {
+	if (!checkInitializedRead()) {
+	    return null;
 	}
+	return getCollection().get(index);
+    }
 
-	public int indexOf(Object o) {
-		if (!checkInitializedRead())
-			return -1;
-		return getCollection().indexOf(o);
+    @Override
+    public E set(int index, E element) {
+	checkInitializedWrite();
+	E previousElement = getCollection().set(index, element);
+	if (previousElement == null ? element != null : !previousElement.equals(element)) {
+	    dirty();
 	}
+	return previousElement;
+    }
 
-	public int lastIndexOf(Object o) {
-		if (!checkInitializedRead())
-			return -1;
-		return getCollection().lastIndexOf(o);
-	}
+    @Override
+    public void add(int index, E element) {
+	checkInitializedWrite();
+	getCollection().add(index, element);
+	dirty();
+    }
 
-	public ListIterator<E> listIterator() {
-		return listIterator(0);
-	}
+    @Override
+    public E remove(int index) {
+	checkInitializedWrite();
+	E previousElement = getCollection().remove(index);
+	dirty();
+	return previousElement;
+    }
 
-	public ListIterator<E> listIterator(int index) {
-		return new ListIteratorProxy<E>(getCollection().listIterator(index));
+    @Override
+    public int indexOf(Object o) {
+	if (!checkInitializedRead()) {
+	    return -1;
 	}
+	return getCollection().indexOf(o);
+    }
 
-	public List<E> subList(int fromIndex, int toIndex) {
-		if (!checkInitializedRead())
-			return null;
-		return new ListProxy<E>(getCollection().subList(fromIndex, toIndex));
+    @Override
+    public int lastIndexOf(Object o) {
+	if (!checkInitializedRead()) {
+	    return -1;
 	}
+	return getCollection().lastIndexOf(o);
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	protected void updateFromSnapshot(ObjectInput in, PersistentCollectionSnapshot snapshot) {
-		if (snapshot.isInitialized())
-			init(new ArrayList<E>((Collection<? extends E>)snapshot.getElementsAsCollection()), snapshot.getDetachedState(), snapshot.isDirty());
-		else
-			init(null, snapshot.getDetachedState(), false);
+    @Override
+    public ListIterator<E> listIterator() {
+	return listIterator(0);
+    }
+
+    @Override
+    public ListIterator<E> listIterator(int index) {
+	return new ListIteratorProxy<>(getCollection().listIterator(index));
+    }
+
+    @Override
+    public List<E> subList(int fromIndex, int toIndex) {
+	if (!checkInitializedRead()) {
+	    return null;
 	}
-	
+	return new ListProxy<>(getCollection().subList(fromIndex, toIndex));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected void updateFromSnapshot(ObjectInput in, PersistentCollectionSnapshot snapshot) {
+	if (snapshot.isInitialized()) {
+	    init(new ArrayList<E>((Collection<? extends E>) snapshot.getElementsAsCollection()), snapshot.getDetachedState(), snapshot.isDirty());
+	} else {
+	    init(null, snapshot.getDetachedState(), false);
+	}
+    }
+
+    @Override
     public PersistentList<E> clone(boolean uninitialize) {
-    	PersistentList<E> list = new PersistentList<E>();
-    	if (wasInitialized() && !uninitialize)
-    		list.init(getCollection(), null, isDirty());
-        return list; 
+	PersistentList<E> list = new PersistentList<>();
+	if (wasInitialized() && !uninitialize) {
+	    list.init(getCollection(), null, isDirty());
+	}
+	return list;
     }
 }

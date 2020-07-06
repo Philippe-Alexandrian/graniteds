@@ -37,154 +37,146 @@ import org.granite.client.messaging.messages.MessageChain;
 public final class InvocationMessage extends AbstractRequestMessage implements MessageChain<InvocationMessage> {
 
     private static final long serialVersionUID = 1L;
-	
-	private String serviceId = null;
-	private String method = null;
-	private Object[] parameters = null;
-	
-	private InvocationMessage next = null;
-	
-	public InvocationMessage() {
+
+    private String serviceId = null;
+    private String method = null;
+    private Object[] parameters = null;
+
+    private InvocationMessage next = null;
+
+    public InvocationMessage() {
+    }
+
+    public InvocationMessage(String serviceId, String method, Object[] parameters) {
+	this(null, serviceId, method, parameters);
+    }
+
+    public InvocationMessage(String clientId, String serviceId, String method, Object[] parameters) {
+	super(clientId);
+
+	this.serviceId = serviceId;
+	this.method = method;
+	this.parameters = parameters;
+    }
+
+    public InvocationMessage(String id, String clientId, long timestamp, long timeToLive, Map<String, Object> headers, String serviceId, String method, Object[] parameters) {
+
+	super(id, clientId, timestamp, timeToLive, headers);
+
+	this.serviceId = serviceId;
+	this.method = method;
+	this.parameters = parameters;
+    }
+
+    @Override
+    public Type getType() {
+	return Type.INVOCATION;
+    }
+
+    public String getServiceId() {
+	return this.serviceId;
+    }
+
+    public void setServiceId(String serviceId) {
+	this.serviceId = serviceId;
+    }
+
+    public String getMethod() {
+	return this.method;
+    }
+
+    public void setMethod(String method) {
+	this.method = method;
+    }
+
+    public Object[] getParameters() {
+	return this.parameters;
+    }
+
+    public void setParameters(Object[] parameters) {
+	this.parameters = parameters;
+    }
+
+    @Override
+    public void setNext(InvocationMessage next) {
+	for (InvocationMessage n = next; n != null; n = n.getNext()) {
+	    if (n == this) {
+		throw new RuntimeException("Circular chaining to this: " + next);
+	    }
 	}
+	this.next = next;
+    }
 
-	public InvocationMessage(String serviceId, String method, Object[] parameters) {
-		this(null, serviceId, method, parameters);
-	}
+    @Override
+    public InvocationMessage getNext() {
+	return this.next;
+    }
 
-	public InvocationMessage(String clientId, String serviceId, String method, Object[] parameters) {
-		super(clientId);
+    @Override
+    public Iterator<InvocationMessage> iterator() {
 
-		this.serviceId = serviceId;
-		this.method = method;
-		this.parameters = parameters;
-	}
+	final InvocationMessage first = this;
 
-	public InvocationMessage(
-		String id,
-		String clientId,
-		long timestamp,
-		long timeToLive,
-		Map<String, Object> headers,
-		String serviceId,
-		String method,
-		Object[] parameters) {
-		
-		super(id, clientId, timestamp, timeToLive, headers);
-		
-		this.serviceId = serviceId;
-		this.method = method;
-		this.parameters = parameters;
-	}
+	return new Iterator<InvocationMessage>() {
 
-	@Override
-	public Type getType() {
-		return Type.INVOCATION;
-	}
+	    private InvocationMessage current = first;
 
-	public String getServiceId() {
-		return serviceId;
-	}
+	    @Override
+	    public boolean hasNext() {
+		return this.current != null;
+	    }
 
-	public void setServiceId(String serviceId) {
-		this.serviceId = serviceId;
-	}
-
-	public String getMethod() {
-		return method;
-	}
-
-	public void setMethod(String method) {
-		this.method = method;
-	}
-
-	public Object[] getParameters() {
-		return parameters;
-	}
-
-	public void setParameters(Object[] parameters) {
-		this.parameters = parameters;
-	}
-
-	@Override
-	public void setNext(InvocationMessage next) {
-		for (InvocationMessage n = next; n != null; n = n.getNext()) {
-			if (n == this)
-				throw new RuntimeException("Circular chaining to this: " + next);
+	    @Override
+	    public InvocationMessage next() {
+		if (this.current == null) {
+		    throw new NoSuchElementException();
 		}
-		this.next = next;
-	}
+		InvocationMessage c = this.current;
+		this.current = this.current.getNext();
+		return c;
+	    }
 
-	@Override
-	public InvocationMessage getNext() {
-		return next;
-	}
-	
-	@Override
-	public Iterator<InvocationMessage> iterator() {
-		
-		final InvocationMessage first = this;
-		
-		return new Iterator<InvocationMessage>() {
+	    @Override
+	    public void remove() {
+		throw new UnsupportedOperationException();
+	    }
+	};
+    }
 
-			private InvocationMessage current = first;
-			
-			@Override
-			public boolean hasNext() {
-				return current != null;
-			}
+    @Override
+    public InvocationMessage copy() {
+	InvocationMessage message = new InvocationMessage();
 
-			@Override
-			public InvocationMessage next() {
-				if (current == null)
-					throw new NoSuchElementException();
-				InvocationMessage c = current;
-				current = current.getNext();
-				return c;
-			}
+	copy(message);
 
-			@Override
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-		};
-	}
+	message.serviceId = this.serviceId;
+	message.method = this.method;
+	message.parameters = this.parameters;
 
-	@Override
-	public InvocationMessage copy() {
-		InvocationMessage message = new InvocationMessage();
+	return message;
+    }
 
-		copy(message);
-		
-		message.serviceId = serviceId;
-		message.method = method;
-		message.parameters = parameters;
-		
-		return message;
-	}
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	super.readExternal(in);
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		super.readExternal(in);
-		
-		this.serviceId = in.readUTF();
-		this.method = in.readUTF();
-		this.parameters = (Object[])in.readObject();
-	}
+	this.serviceId = in.readUTF();
+	this.method = in.readUTF();
+	this.parameters = (Object[]) in.readObject();
+    }
 
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-		super.writeExternal(out);
-		
-		out.writeUTF(serviceId);
-		out.writeUTF(method);
-		out.writeObject(parameters);
-	}
-	
-	@Override
-	public StringBuilder toString(StringBuilder sb) {
-		return super.toString(sb)
-			.append("\n    serviceId=").append(serviceId)
-			.append("\n    method=").append(method)
-			.append("\n    parameters=").append(parameters == null ? null : Arrays.toString(parameters));
-	}
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+	super.writeExternal(out);
+
+	out.writeUTF(this.serviceId);
+	out.writeUTF(this.method);
+	out.writeObject(this.parameters);
+    }
+
+    @Override
+    public StringBuilder toString(StringBuilder sb) {
+	return super.toString(sb).append("\n    serviceId=").append(this.serviceId).append("\n    method=").append(this.method).append("\n    parameters=")
+		.append(this.parameters == null ? null : Arrays.toString(this.parameters));
+    }
 }

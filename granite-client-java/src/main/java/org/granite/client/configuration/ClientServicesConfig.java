@@ -27,9 +27,9 @@ import org.granite.config.flex.ChannelConfig;
  * @author Franck WOLFF
  */
 public class ClientServicesConfig implements ChannelConfig {
-	
-	@Override
-	public boolean getChannelProperty(String channelId, String propertyName) {
-		return false;
-	}
+
+    @Override
+    public boolean getChannelProperty(String channelId, String propertyName) {
+	return false;
+    }
 }

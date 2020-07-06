@@ -21,7 +21,6 @@
  */
 package org.granite.client.test.server.client.data;
 
-
 /**
  * Created by william on 30/09/13.
  */

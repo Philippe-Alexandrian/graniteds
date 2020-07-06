@@ -24,8 +24,7 @@ package org.granite.client.persistence.collection;
 import java.util.Comparator;
 
 /**
- * Base interface for all persistent sorted collections and maps
- * A loader can be defined to execute a particular behaviour when a lazy collection is accessed
+ * Base interface for all persistent sorted collections and maps A loader can be defined to execute a particular behaviour when a lazy collection is accessed
  *
  * @author Franck WOLFF
  */
@@ -33,7 +32,8 @@ public interface PersistentSortedCollection<C, E> extends PersistentCollection<C
 
     /**
      * Comparator for the sorting
+     * 
      * @return comparator
      */
-	Comparator<? super E> comparator();
+    Comparator<? super E> comparator();
 }

@@ -29,8 +29,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import flex.messaging.messages.Message;
-
 import org.granite.client.messaging.ClientAliasRegistry;
 import org.granite.client.messaging.ServerApp;
 import org.granite.client.messaging.codec.MessagingCodec;
@@ -42,312 +40,362 @@ import org.granite.messaging.amf.AMF0Message;
 import org.granite.util.ContentType;
 import org.granite.util.ServiceLoader;
 
+import flex.messaging.messages.Message;
+
 /**
  * @author Franck WOLFF
  */
 public abstract class AbstractChannelFactory implements ChannelFactory {
-	
-	protected final ContentType contentType;
+
+    protected final ContentType contentType;
 
     private String defaultChannelType = ChannelType.LONG_POLLING;
-	protected Transport remotingTransport = null;
-	protected Transport messagingTransport = null;
-    protected Map<String, Transport> messagingTransports = new HashMap<String, Transport>();
-	protected Object context = null;
+    protected Transport remotingTransport = null;
+    protected Transport messagingTransport = null;
+    protected Map<String, Transport> messagingTransports = new HashMap<>();
+    protected Object context = null;
     protected ChannelBuilder defaultChannelBuilder = new DefaultChannelBuilder();
 
-	protected Set<String> scanPackageNames = null;
-	protected AliasRegistry aliasRegistry = null;
+    protected Set<String> scanPackageNames = null;
+    protected AliasRegistry aliasRegistry = null;
 
-	protected Long defaultTimeToLive = null;
-	protected Long defaultMaxReconnectAttempts = null;
+    protected Long defaultTimeToLive = null;
+    protected Long defaultMaxReconnectAttempts = null;
 
-	
-	protected AbstractChannelFactory(ContentType contentType) {
-		this(contentType, null, null, null);
-	}
+    protected AbstractChannelFactory(ContentType contentType) {
+	this(contentType, null, null, null);
+    }
 
-	protected AbstractChannelFactory(ContentType contentType, Object context) {
-		this(contentType, context, null, null);
-	}
+    protected AbstractChannelFactory(ContentType contentType, Object context) {
+	this(contentType, context, null, null);
+    }
 
-	protected AbstractChannelFactory(ContentType contentType, Object context, Transport remotingTransport, Transport messagingTransport) {
-		this.contentType = contentType;
-		this.context = context;
-		this.remotingTransport = remotingTransport;
-		this.messagingTransport = messagingTransport;
-	}
+    protected AbstractChannelFactory(ContentType contentType, Object context, Transport remotingTransport, Transport messagingTransport) {
+	this.contentType = contentType;
+	this.context = context;
+	this.remotingTransport = remotingTransport;
+	this.messagingTransport = messagingTransport;
+    }
 
-	public Object getContext() {
-		return context;
-	}
+    @Override
+    public Object getContext() {
+	return this.context;
+    }
 
-	public void setContext(Object context) {
-		this.context = context;
-	}
+    @Override
+    public void setContext(Object context) {
+	this.context = context;
+    }
 
+    @Override
     public void setDefaultChannelBuilder(ChannelBuilder channelBuilder) {
-        this.defaultChannelBuilder = channelBuilder;
+	this.defaultChannelBuilder = channelBuilder;
     }
 
-	public ContentType getContentType() {
-		return contentType;
-	}
-	
-	public long getDefaultTimeToLive() {
-		return (defaultTimeToLive != null ? defaultTimeToLive.longValue() : -1L);
-	}
+    @Override
+    public ContentType getContentType() {
+	return this.contentType;
+    }
 
-	public void setDefaultTimeToLive(long defaultTimeToLive) {
-		this.defaultTimeToLive = Long.valueOf(defaultTimeToLive);
-	}
+    @Override
+    public long getDefaultTimeToLive() {
+	return (this.defaultTimeToLive != null ? this.defaultTimeToLive : -1L);
+    }
 
-	public void setDefaultMaxReconnectAttempts(long maxReconnectAttempts) {
-		this.defaultMaxReconnectAttempts = Long.valueOf(maxReconnectAttempts);
-	}
+    @Override
+    public void setDefaultTimeToLive(long defaultTimeToLive) {
+	this.defaultTimeToLive = defaultTimeToLive;
+    }
 
-	public void setAliasRegistry(AliasRegistry aliasRegistry) {
-	    this.aliasRegistry = aliasRegistry;
-	}
+    @Override
+    public void setDefaultMaxReconnectAttempts(long maxReconnectAttempts) {
+	this.defaultMaxReconnectAttempts = maxReconnectAttempts;
+    }
 
+    @Override
+    public void setAliasRegistry(AliasRegistry aliasRegistry) {
+	this.aliasRegistry = aliasRegistry;
+    }
+
+    @Override
     public void setDefaultChannelType(String channelType) {
-        this.defaultChannelType = channelType;
+	this.defaultChannelType = channelType;
     }
 
+    @Override
     public String getDefaultChannelType() {
-        return defaultChannelType;
+	return this.defaultChannelType;
     }
 
-	public Transport getRemotingTransport() {
-		return remotingTransport;
-	}
+    @Override
+    public Transport getRemotingTransport() {
+	return this.remotingTransport;
+    }
 
-	public void setRemotingTransport(Transport remotingTransport) {
-		this.remotingTransport = remotingTransport;
-	}
+    @Override
+    public void setRemotingTransport(Transport remotingTransport) {
+	this.remotingTransport = remotingTransport;
+    }
 
-	public void setMessagingTransport(Transport messagingTransport) {
-		this.messagingTransport = messagingTransport;
-	}
+    @Override
+    public void setMessagingTransport(Transport messagingTransport) {
+	this.messagingTransport = messagingTransport;
+    }
 
+    @Override
     public void setMessagingTransport(String channelType, Transport messagingTransport) {
-        this.messagingTransports.put(channelType, messagingTransport);
+	this.messagingTransports.put(channelType, messagingTransport);
     }
 
+    @Override
     public Transport getMessagingTransport() {
-        return messagingTransport;
+	return this.messagingTransport;
     }
 
+    @Override
     public Map<String, Transport> getMessagingTransports() {
-        return messagingTransports;
+	return this.messagingTransports;
     }
-    
+
+    @Override
     public Transport getMessagingTransport(String channelType) {
-        if (channelType != null && messagingTransports.containsKey(channelType))
-            return messagingTransports.get(channelType);
-        return messagingTransport;
+	if ((channelType != null) && this.messagingTransports.containsKey(channelType)) {
+	    return this.messagingTransports.get(channelType);
+	}
+	return this.messagingTransport;
     }
 
-	public void setScanPackageNames(String... packageNames) {
-		if (packageNames != null)
-			this.scanPackageNames = new HashSet<String>(Arrays.asList(packageNames));
-		else
-			this.scanPackageNames = null;
+    public void setScanPackageNames(String... packageNames) {
+	if (packageNames != null) {
+	    this.scanPackageNames = new HashSet<>(Arrays.asList(packageNames));
+	} else {
+	    this.scanPackageNames = null;
+	}
+    }
+
+    @Override
+    public void setScanPackageNames(Set<String> packageNames) {
+	this.scanPackageNames = packageNames;
+    }
+
+    @Override
+    public void start() {
+	Platform platform = Platform.getInstance();
+	platform.setContext(this.context);
+
+	if (this.remotingTransport == null) {
+	    this.remotingTransport = Platform.getInstance().newRemotingTransport();
 	}
 
-	public void setScanPackageNames(Set<String> packageNames) {
-		this.scanPackageNames = packageNames;
+	this.defaultChannelType = Platform.getInstance().defaultChannelType();
+
+	if (this.messagingTransport == null) {
+	    this.messagingTransport = Platform.getInstance().newMessagingTransport();
+	    if (this.messagingTransport == null) {
+		this.messagingTransport = this.remotingTransport;
+	    }
 	}
 
+	if (!this.messagingTransports.containsKey(this.defaultChannelType)) {
+	    this.messagingTransports.put(this.defaultChannelType, this.messagingTransport);
+	}
+	for (Map.Entry<String, Transport> me : Platform.getInstance().getMessagingTransports().entrySet()) {
+	    if (!this.messagingTransports.containsKey(me.getKey())) {
+		this.messagingTransports.put(me.getKey(), me.getValue());
+	    }
+	}
 
-	public void start() {
-		Platform platform = Platform.getInstance();
-		platform.setContext(context);
+	if (this.aliasRegistry == null) {
+	    this.aliasRegistry = new ClientAliasRegistry();
+	}
 
-		if (remotingTransport == null)
-			remotingTransport = Platform.getInstance().newRemotingTransport();
-		
-        defaultChannelType = Platform.getInstance().defaultChannelType();
+	if (this.scanPackageNames != null) {
+	    this.aliasRegistry.scan(this.scanPackageNames);
+	}
+    }
 
-        if (messagingTransport == null) {
-			messagingTransport = Platform.getInstance().newMessagingTransport();
-			if (messagingTransport == null)
-				messagingTransport = remotingTransport;
+    @Override
+    public void stop() {
+	this.aliasRegistry = null;
+
+	stop(true);
+    }
+
+    @Override
+    public void stop(boolean stopTransports) {
+	if (stopTransports) {
+	    if ((this.remotingTransport != null) && this.remotingTransport.isStarted()) {
+		this.remotingTransport.stop();
+		this.remotingTransport = null;
+	    }
+
+	    if ((this.messagingTransport != null) && this.messagingTransport.isStarted()) {
+		this.messagingTransport.stop();
+		this.messagingTransport = null;
+	    }
+
+	    for (Transport transport : this.messagingTransports.values()) {
+		if (transport.isStarted()) {
+		    transport.stop();
 		}
-
-        if (!messagingTransports.containsKey(defaultChannelType))
-            messagingTransports.put(defaultChannelType, messagingTransport);
-        for (Map.Entry<String, Transport> me : Platform.getInstance().getMessagingTransports().entrySet()) {
-            if (!messagingTransports.containsKey(me.getKey()))
-                messagingTransports.put(me.getKey(), me.getValue());
-        }
-
-		if (aliasRegistry == null)
-			aliasRegistry = new ClientAliasRegistry();
-		
-		if (scanPackageNames != null)
-			aliasRegistry.scan(scanPackageNames);
+	    }
+	    this.messagingTransports.clear();
 	}
-	
-	public void stop() {
-		aliasRegistry = null;
-		
-		stop(true);
-	}
+    }
 
-	public void stop(boolean stopTransports) {
-		if (stopTransports) {
-			if (remotingTransport != null && remotingTransport.isStarted()) {
-				remotingTransport.stop();
-				remotingTransport = null;
-			}
-			
-			if (messagingTransport != null && messagingTransport.isStarted()) {
-				messagingTransport.stop();
-				messagingTransport = null;
-			}
+    @Override
+    public RemotingChannel newRemotingChannel(String id, String uri) {
+	return newRemotingChannel(id, uri, RemotingChannel.DEFAULT_MAX_CONCURRENT_REQUESTS);
+    }
 
-            for (Transport transport : messagingTransports.values()) {
-                if (transport.isStarted())
-                    transport.stop();
-            }
-            messagingTransports.clear();
-		}
-	}
-
-	@Override
-	public RemotingChannel newRemotingChannel(String id, String uri) {
-		return newRemotingChannel(id, uri, RemotingChannel.DEFAULT_MAX_CONCURRENT_REQUESTS);
-	}
-	
-	@Override
-	public RemotingChannel newRemotingChannel(String id, URI uri) {
-		return newRemotingChannel(id, uri, RemotingChannel.DEFAULT_MAX_CONCURRENT_REQUESTS);
-	}
+    @Override
+    public RemotingChannel newRemotingChannel(String id, URI uri) {
+	return newRemotingChannel(id, uri, RemotingChannel.DEFAULT_MAX_CONCURRENT_REQUESTS);
+    }
 
     @Override
     public RemotingChannel newRemotingChannel(String id, ServerApp serverApp) {
-        return newRemotingChannel(id, serverApp, RemotingChannel.DEFAULT_MAX_CONCURRENT_REQUESTS);
+	return newRemotingChannel(id, serverApp, RemotingChannel.DEFAULT_MAX_CONCURRENT_REQUESTS);
     }
 
-	@Override
-	public RemotingChannel newRemotingChannel(String id, String uri, int maxConcurrentRequests) {
-		try {
-			return newRemotingChannel(id, new URI(uri), maxConcurrentRequests);
-		}
-		catch (URISyntaxException e) {
-			throw new IllegalArgumentException("Bad uri: " + uri, e);
-		}
+    @Override
+    public RemotingChannel newRemotingChannel(String id, String uri, int maxConcurrentRequests) {
+	try {
+	    return newRemotingChannel(id, new URI(uri), maxConcurrentRequests);
+	} catch (URISyntaxException e) {
+	    throw new IllegalArgumentException("Bad uri: " + uri, e);
 	}
-	
-	@Override
-	public RemotingChannel newRemotingChannel(String id, URI uri, int maxConcurrentRequests) {
-        if (getRemotingTransport() == null)
-            throw new RuntimeException("Remoting transport not defined, start the ChannelFactory first");
-        if (!getRemotingTransport().isStarted() && !getRemotingTransport().start())
-            throw new TransportException("Could not start remoting transport: " + getRemotingTransport());
+    }
 
-        RemotingChannel channel = defaultChannelBuilder.buildRemotingChannel(getRemotingChannelClass(), id, uri, maxConcurrentRequests, getRemotingTransport(), newMessagingCodec(AMF0Message.class));
-		if (defaultTimeToLive != null)
-			channel.setDefaultTimeToLive(defaultTimeToLive);
-		return channel;
+    @Override
+    public RemotingChannel newRemotingChannel(String id, URI uri, int maxConcurrentRequests) {
+	if (getRemotingTransport() == null) {
+	    throw new RuntimeException("Remoting transport not defined, start the ChannelFactory first");
 	}
+	if (!getRemotingTransport().isStarted() && !getRemotingTransport().start()) {
+	    throw new TransportException("Could not start remoting transport: " + getRemotingTransport());
+	}
+
+	RemotingChannel channel = this.defaultChannelBuilder.buildRemotingChannel(getRemotingChannelClass(), id, uri, maxConcurrentRequests, getRemotingTransport(),
+		newMessagingCodec(AMF0Message.class));
+	if (this.defaultTimeToLive != null) {
+	    channel.setDefaultTimeToLive(this.defaultTimeToLive);
+	}
+	return channel;
+    }
 
     @Override
     public RemotingChannel newRemotingChannel(String id, ServerApp serverApp, int maxConcurrentRequests) {
-        if (getRemotingTransport() == null)
-            throw new RuntimeException("Remoting transport not defined, start the ChannelFactory first");
-        if (!getRemotingTransport().isStarted() && !getRemotingTransport().start())
-            throw new TransportException("Could not start remoting transport: " + getRemotingTransport());
+	if (getRemotingTransport() == null) {
+	    throw new RuntimeException("Remoting transport not defined, start the ChannelFactory first");
+	}
+	if (!getRemotingTransport().isStarted() && !getRemotingTransport().start()) {
+	    throw new TransportException("Could not start remoting transport: " + getRemotingTransport());
+	}
 
-        RemotingChannel channel = defaultChannelBuilder.buildRemotingChannel(getRemotingChannelClass(), id, serverApp, maxConcurrentRequests, getRemotingTransport(), newMessagingCodec(AMF0Message.class));
-        if (defaultTimeToLive != null)
-            channel.setDefaultTimeToLive(defaultTimeToLive);
-        return channel;
+	RemotingChannel channel = this.defaultChannelBuilder.buildRemotingChannel(getRemotingChannelClass(), id, serverApp, maxConcurrentRequests, getRemotingTransport(),
+		newMessagingCodec(AMF0Message.class));
+	if (this.defaultTimeToLive != null) {
+	    channel.setDefaultTimeToLive(this.defaultTimeToLive);
+	}
+	return channel;
     }
 
-	protected abstract Class<? extends RemotingChannel> getRemotingChannelClass();
+    protected abstract Class<? extends RemotingChannel> getRemotingChannelClass();
 
-	@Override
-	public MessagingChannel newMessagingChannel(String id, String uri) {
-		return newMessagingChannel(defaultChannelType, id, uri);
+    @Override
+    public MessagingChannel newMessagingChannel(String id, String uri) {
+	return newMessagingChannel(this.defaultChannelType, id, uri);
+    }
+
+    @Override
+    public MessagingChannel newMessagingChannel(String id, URI uri) {
+	return newMessagingChannel(this.defaultChannelType, id, uri);
+    }
+
+    @Override
+    public MessagingChannel newMessagingChannel(String id, ServerApp serverApp) {
+	return newMessagingChannel(this.defaultChannelType, id, serverApp);
+    }
+
+    @Override
+    public MessagingChannel newMessagingChannel(String channelType, String id, String uri) {
+	try {
+	    return newMessagingChannel(channelType, id, new URI(uri));
+	} catch (URISyntaxException e) {
+	    throw new IllegalArgumentException("Bad uri: " + uri, e);
 	}
+    }
 
-	@Override
-	public MessagingChannel newMessagingChannel(String id, URI uri) {
-		return newMessagingChannel(defaultChannelType, id, uri);
+    @Override
+    public MessagingChannel newMessagingChannel(String channelType, String id, URI uri) {
+	Transport transport = getMessagingTransport(channelType);
+	if (transport == null) {
+	    throw new RuntimeException("No transport defined for channel type " + channelType + ", start the ChannelFactory first");
 	}
-
-	@Override
-	public MessagingChannel newMessagingChannel(String id, ServerApp serverApp) {
-		return newMessagingChannel(defaultChannelType, id, serverApp);
+	if (!transport.isStarted() && !transport.start()) {
+	    throw new TransportException("Could not start messaging transport: " + transport);
 	}
-
-	@Override
-	public MessagingChannel newMessagingChannel(String channelType, String id, String uri) {
-		try {
-			return newMessagingChannel(channelType, id, new URI(uri));
+	MessagingCodec<Message[]> codec = newMessagingCodec(Message[].class);
+	for (ChannelBuilder builder : ServiceLoader.load(ChannelBuilder.class)) {
+	    MessagingChannel channel = builder.buildMessagingChannel(channelType, id, uri, transport, codec);
+	    if (channel != null) {
+		if (this.defaultTimeToLive != null) {
+		    channel.setDefaultTimeToLive(this.defaultTimeToLive);
 		}
-		catch (URISyntaxException e) {
-			throw new IllegalArgumentException("Bad uri: " + uri, e);
+		if (this.defaultMaxReconnectAttempts != null) {
+		    channel.setDefaultMaxReconnectAttempts(this.defaultMaxReconnectAttempts);
 		}
-	}
-	
-	@Override
-	public MessagingChannel newMessagingChannel(String channelType, String id, URI uri) {
-        Transport transport = getMessagingTransport(channelType);
-        if (transport == null)
-            throw new RuntimeException("No transport defined for channel type " + channelType + ", start the ChannelFactory first");
-        if (!transport.isStarted() && !transport.start())
-            throw new TransportException("Could not start messaging transport: " + transport);
-        MessagingCodec<Message[]> codec = newMessagingCodec(Message[].class);
-        for (ChannelBuilder builder : ServiceLoader.load(ChannelBuilder.class)) {
-            MessagingChannel channel = builder.buildMessagingChannel(channelType, id, uri, transport, codec);
-            if (channel != null) {
-                if (defaultTimeToLive != null)
-                    channel.setDefaultTimeToLive(defaultTimeToLive);
-                if (defaultMaxReconnectAttempts != null)
-                	channel.setDefaultMaxReconnectAttempts(defaultMaxReconnectAttempts);
-                return channel;
-            }
-        }
-		MessagingChannel channel = defaultChannelBuilder.buildMessagingChannel(channelType, id, uri, transport, codec);
-        if (channel == null)
-            throw new RuntimeException("Could not build channel for type " + channelType + " and uri " + uri);
-		if (defaultTimeToLive != null)
-			channel.setDefaultTimeToLive(defaultTimeToLive);
-        if (defaultMaxReconnectAttempts != null)
-        	channel.setDefaultMaxReconnectAttempts(defaultMaxReconnectAttempts);
 		return channel;
+	    }
 	}
+	MessagingChannel channel = this.defaultChannelBuilder.buildMessagingChannel(channelType, id, uri, transport, codec);
+	if (channel == null) {
+	    throw new RuntimeException("Could not build channel for type " + channelType + " and uri " + uri);
+	}
+	if (this.defaultTimeToLive != null) {
+	    channel.setDefaultTimeToLive(this.defaultTimeToLive);
+	}
+	if (this.defaultMaxReconnectAttempts != null) {
+	    channel.setDefaultMaxReconnectAttempts(this.defaultMaxReconnectAttempts);
+	}
+	return channel;
+    }
 
     @Override
     public MessagingChannel newMessagingChannel(String channelType, String id, ServerApp serverApp) {
-        Transport transport = getMessagingTransport(channelType);
-        if (transport == null)
-            throw new RuntimeException("No transport defined for channel type " + channelType + ", start the ChannelFactory first");
-        if (!transport.isStarted() && !transport.start())
-            throw new TransportException("Could not start messaging transport: " + transport);
-        MessagingCodec<Message[]> codec = newMessagingCodec(Message[].class);
-        for (ChannelBuilder builder : ServiceLoader.load(ChannelBuilder.class)) {
-            MessagingChannel channel = builder.buildMessagingChannel(channelType, id, serverApp, transport, codec);
-            if (channel != null) {
-                if (defaultTimeToLive != null)
-                    channel.setDefaultTimeToLive(defaultTimeToLive);
-                if (defaultMaxReconnectAttempts != null)
-                	channel.setDefaultMaxReconnectAttempts(defaultMaxReconnectAttempts);
-                return channel;
-            }
-        }
-        MessagingChannel channel = defaultChannelBuilder.buildMessagingChannel(channelType, id, serverApp, transport, codec);
-        if (channel == null)
-            throw new RuntimeException("Could not build channel for type " + channelType + " and server " + serverApp.getServerName());
-        if (defaultTimeToLive != null)
-            channel.setDefaultTimeToLive(defaultTimeToLive);
-        if (defaultMaxReconnectAttempts != null)
-        	channel.setDefaultMaxReconnectAttempts(defaultMaxReconnectAttempts);
-        return channel;
+	Transport transport = getMessagingTransport(channelType);
+	if (transport == null) {
+	    throw new RuntimeException("No transport defined for channel type " + channelType + ", start the ChannelFactory first");
+	}
+	if (!transport.isStarted() && !transport.start()) {
+	    throw new TransportException("Could not start messaging transport: " + transport);
+	}
+	MessagingCodec<Message[]> codec = newMessagingCodec(Message[].class);
+	for (ChannelBuilder builder : ServiceLoader.load(ChannelBuilder.class)) {
+	    MessagingChannel channel = builder.buildMessagingChannel(channelType, id, serverApp, transport, codec);
+	    if (channel != null) {
+		if (this.defaultTimeToLive != null) {
+		    channel.setDefaultTimeToLive(this.defaultTimeToLive);
+		}
+		if (this.defaultMaxReconnectAttempts != null) {
+		    channel.setDefaultMaxReconnectAttempts(this.defaultMaxReconnectAttempts);
+		}
+		return channel;
+	    }
+	}
+	MessagingChannel channel = this.defaultChannelBuilder.buildMessagingChannel(channelType, id, serverApp, transport, codec);
+	if (channel == null) {
+	    throw new RuntimeException("Could not build channel for type " + channelType + " and server " + serverApp.getServerName());
+	}
+	if (this.defaultTimeToLive != null) {
+	    channel.setDefaultTimeToLive(this.defaultTimeToLive);
+	}
+	if (this.defaultMaxReconnectAttempts != null) {
+	    channel.setDefaultMaxReconnectAttempts(this.defaultMaxReconnectAttempts);
+	}
+	return channel;
     }
 
-	protected abstract <M> MessagingCodec<M> newMessagingCodec(Class<M> messageClass);
+    protected abstract <M> MessagingCodec<M> newMessagingCodec(Class<M> messageClass);
 }

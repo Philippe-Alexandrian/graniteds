@@ -30,6 +30,7 @@ import org.granite.messaging.jmf.SharedContext;
  * @author Franck WOLFF
  */
 public interface ClientSharedContext extends SharedContext {
-	
-	ClientAliasRegistry getAliasRegistry();
+
+    @Override
+    ClientAliasRegistry getAliasRegistry();
 }

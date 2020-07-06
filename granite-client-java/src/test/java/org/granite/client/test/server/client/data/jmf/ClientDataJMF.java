@@ -40,8 +40,8 @@ public class ClientDataJMF implements ClientData, Serializable {
     @SuppressWarnings("unused")
     private boolean __initialized__ = true;
     @SuppressWarnings("unused")
-	private String __detachedState__ = null;
-    
+    private String __detachedState__ = null;
+
     @Id
     private Long id;
 
@@ -51,22 +51,23 @@ public class ClientDataJMF implements ClientData, Serializable {
     }
 
     public ClientDataJMF(String value) {
-        this.value = value;
+	this.value = value;
     }
 
     public Long getId() {
-        return id;
+	return this.id;
     }
 
     public void setId(Long id) {
-        this.id = id;
+	this.id = id;
     }
 
+    @Override
     public String getValue() {
-        return value;
+	return this.value;
     }
 
     public void setValue(String value) {
-        this.value = value;
+	this.value = value;
     }
 }

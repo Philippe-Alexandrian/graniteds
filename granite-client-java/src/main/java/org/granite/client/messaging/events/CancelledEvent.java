@@ -30,17 +30,17 @@ import org.granite.client.messaging.messages.RequestMessage;
  */
 public class CancelledEvent extends AbstractIssueEvent {
 
-	public CancelledEvent(RequestMessage request) {
-		super(request);
-	}
+    public CancelledEvent(RequestMessage request) {
+	super(request);
+    }
 
-	@Override
-	public Type getType() {
-		return Type.CANCELLED;
-	}
+    @Override
+    public Type getType() {
+	return Type.CANCELLED;
+    }
 
-	@Override
-	public String toString() {
-		return getClass().getName() + " {}";
-	}
+    @Override
+    public String toString() {
+	return getClass().getName() + " {}";
+    }
 }

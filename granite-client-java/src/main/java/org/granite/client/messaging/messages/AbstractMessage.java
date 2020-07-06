@@ -33,198 +33,196 @@ import org.granite.util.UUIDUtil;
  * @author Franck WOLFF
  */
 public abstract class AbstractMessage implements Message {
-	
-	private static final long serialVersionUID = 1L;
-	
+
+    private static final long serialVersionUID = 1L;
+
     private String id = UUIDUtil.randomUUID();
     private String clientId = null;
 
-	private long timestamp = 0L;
+    private long timestamp = 0L;
     private long timeToLive = 0L;
-	
-	private Map<String, Object> headers = new HashMap<String, Object>();
-	
-	public AbstractMessage() {
+
+    private Map<String, Object> headers = new HashMap<>();
+
+    public AbstractMessage() {
+    }
+
+    public AbstractMessage(String clientId) {
+	this.clientId = clientId;
+    }
+
+    public AbstractMessage(String id, String clientId, long timestamp, long timeToLive, Map<String, Object> headers) {
+
+	setId(id);
+	this.clientId = clientId;
+	this.timestamp = timestamp;
+	this.timeToLive = timeToLive;
+	this.headers = headers;
+    }
+
+    @Override
+    public String getId() {
+	return this.id;
+    }
+
+    @Override
+    public void setId(String id) {
+	if (id == null) {
+	    throw new NullPointerException("id cannot be null");
+	}
+	this.id = id;
+    }
+
+    @Override
+    public String getClientId() {
+	return this.clientId;
+    }
+
+    @Override
+    public void setClientId(String clientId) {
+	this.clientId = clientId;
+    }
+
+    @Override
+    public long getTimestamp() {
+	return this.timestamp;
+    }
+
+    @Override
+    public void setTimestamp(long timestamp) {
+	this.timestamp = timestamp;
+    }
+
+    @Override
+    public long getTimeToLive() {
+	return this.timeToLive;
+    }
+
+    @Override
+    public void setTimeToLive(long timeToLive) {
+	this.timeToLive = timeToLive;
+    }
+
+    @Override
+    public Map<String, Object> getHeaders() {
+	return this.headers;
+    }
+
+    @Override
+    public void setHeaders(Map<String, Object> headers) {
+	if (headers == null) {
+	    throw new NullPointerException("headers cannot be null");
+	}
+	this.headers = headers;
+    }
+
+    @Override
+    public Object getHeader(String name) {
+	return this.headers.get(name);
+    }
+
+    @Override
+    public void setHeader(String name, Object value) {
+	this.headers.put(name, value);
+    }
+
+    @Override
+    public boolean headerExists(String name) {
+	return this.headers.containsKey(name);
+    }
+
+    @Override
+    public boolean isExpired() {
+	return isExpired(System.currentTimeMillis());
+    }
+
+    @Override
+    public boolean isExpired(long currentTimeMillis) {
+	return getRemainingTimeToLive(currentTimeMillis) < 0;
+    }
+
+    @Override
+    public long getRemainingTimeToLive() {
+	return getRemainingTimeToLive(System.currentTimeMillis());
+    }
+
+    @Override
+    public long getRemainingTimeToLive(long currentTimeMillis) {
+	if ((this.timestamp <= 0L) || (this.timeToLive <= 0L)) {
+	    throw new IllegalStateException("Unset timestamp/timeToLive: {timestamp=" + this.timestamp + ", timeToLive=" + this.timeToLive + "}");
+	}
+	return (this.timestamp + this.timeToLive) - currentTimeMillis;
+    }
+
+    protected void copy(AbstractMessage message) {
+	message.id = this.id;
+	message.clientId = this.clientId;
+	message.timestamp = this.timestamp;
+	message.timeToLive = this.timeToLive;
+	message.headers.putAll(this.headers);
+    }
+
+    @Override
+    public Message clone() throws CloneNotSupportedException {
+	return copy();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	String idL = in.readUTF();
+	if (idL == null) {
+	    throw new RuntimeException("Message id cannot be null");
+	}
+	this.id = idL;
+
+	this.clientId = in.readUTF();
+
+	this.timestamp = in.readLong();
+	this.timeToLive = in.readLong();
+
+	Map<String, Object> headersL = (Map<String, Object>) in.readObject();
+	if (headersL != null) {
+	    this.headers = headersL;
+	}
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+	out.writeUTF(this.id);
+	if (this.clientId != null) {
+	    out.writeUTF(this.clientId);
+	} else {
+	    out.writeObject(null);
 	}
 
-	public AbstractMessage(String clientId) {
-		this.clientId = clientId;
+	out.writeLong(this.timestamp);
+	out.writeLong(this.timeToLive);
+
+	if (this.headers.size() > 0) {
+	    out.writeObject(this.headers);
+	} else {
+	    out.writeObject(null);
 	}
+    }
 
-	public AbstractMessage(
-		String id,
-		String clientId,
-		long timestamp,
-		long timeToLive,
-		Map<String, Object> headers) {
+    @Override
+    public boolean equals(Object obj) {
+	return ((obj instanceof AbstractMessage) && this.id.equals(((AbstractMessage) obj).id));
+    }
 
-		setId(id);
-		this.clientId = clientId;
-		this.timestamp = timestamp;
-		this.timeToLive = timeToLive;
-		this.headers = headers;
-	}
+    @Override
+    public int hashCode() {
+	return this.id.hashCode();
+    }
 
-	@Override
-	public String getId() {
-		return id;
-	}
+    @Override
+    public String toString() {
+	return toString(new StringBuilder(getClass().getName()).append(" {")).append("\n}").toString();
+    }
 
-	@Override
-	public void setId(String id) {
-		if (id == null)
-			throw new NullPointerException("id cannot be null");
-		this.id = id;
-	}
-
-	@Override
-	public String getClientId() {
-		return clientId;
-	}
-
-	@Override
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
-
-	@Override
-	public long getTimestamp() {
-		return timestamp;
-	}
-
-	@Override
-	public void setTimestamp(long timestamp) {
-		this.timestamp = timestamp;
-	}
-
-	@Override
-	public long getTimeToLive() {
-		return timeToLive;
-	}
-
-	@Override
-	public void setTimeToLive(long timeToLive) {
-		this.timeToLive = timeToLive;
-	}
-
-	@Override
-	public Map<String, Object> getHeaders() {
-		return headers;
-	}
-
-	@Override
-	public void setHeaders(Map<String, Object> headers) {
-		if (headers == null)
-			throw new NullPointerException("headers cannot be null");
-		this.headers = headers;
-	}
-
-	@Override
-	public Object getHeader(String name) {
-		return headers.get(name);
-	}
-
-	@Override
-	public void setHeader(String name, Object value) {
-		headers.put(name, value);
-	}
-
-	@Override
-	public boolean headerExists(String name) {
-		return headers.containsKey(name);
-	}
-
-	@Override
-	public boolean isExpired() {
-		return isExpired(System.currentTimeMillis());
-	}
-
-	@Override
-	public boolean isExpired(long currentTimeMillis) {
-		return getRemainingTimeToLive(currentTimeMillis) < 0;
-	}
-
-	@Override
-	public long getRemainingTimeToLive() {
-		return getRemainingTimeToLive(System.currentTimeMillis());
-	}
-
-	@Override
-	public long getRemainingTimeToLive(long currentTimeMillis) {
-		if (timestamp <= 0L || this.timeToLive <= 0L)
-			throw new IllegalStateException("Unset timestamp/timeToLive: {timestamp=" + timestamp + ", timeToLive=" + timeToLive + "}");
-		return timestamp + timeToLive - currentTimeMillis;
-	}
-	
-	protected void copy(AbstractMessage message) {
-		message.id = id;
-		message.clientId = clientId;
-		message.timestamp = timestamp;
-		message.timeToLive = timeToLive;
-		message.headers.putAll(headers);
-	}
-
-	@Override
-	public Message clone() throws CloneNotSupportedException {
-		return copy();
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {		
-	    String id = in.readUTF();
-	    if (id == null)
-	    	throw new RuntimeException("Message id cannot be null");
-	    this.id = id;
-	    
-	    clientId = in.readUTF();
-
-		timestamp = in.readLong();
-	    timeToLive = in.readLong();
-
-	    Map<String, Object> headers = (Map<String, Object>)in.readObject();
-		if (headers != null)
-			this.headers = headers;
-	}
-
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-	    out.writeUTF(id);
-	    if (clientId != null)
-	    	out.writeUTF(clientId);
-	    else
-	    	out.writeObject(null);
-
-		out.writeLong(timestamp);
-		out.writeLong(timeToLive);
-		
-		if (headers.size() > 0)
-			out.writeObject(headers);
-		else
-			out.writeObject(null);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		return (obj instanceof AbstractMessage && id.equals(((AbstractMessage)obj).id));
-	}
-
-	@Override
-	public int hashCode() {
-		return id.hashCode();
-	}
-	
-	@Override
-	public String toString() {
-		return toString(new StringBuilder(getClass().getName()).append(" {")).append("\n}").toString();
-	}
-
-	public StringBuilder toString(StringBuilder sb) {
-		return sb
-			.append("\n    id=").append(id)
-			.append("\n    clientId=").append(clientId)
-			.append("\n    timestamp=").append(timestamp)
-			.append("\n    timeToLive=").append(timeToLive)
-			.append("\n    headers=").append(headers);
-	}
+    public StringBuilder toString(StringBuilder sb) {
+	return sb.append("\n    id=").append(this.id).append("\n    clientId=").append(this.clientId).append("\n    timestamp=").append(this.timestamp).append("\n    timeToLive=")
+		.append(this.timeToLive).append("\n    headers=").append(this.headers);
+    }
 }

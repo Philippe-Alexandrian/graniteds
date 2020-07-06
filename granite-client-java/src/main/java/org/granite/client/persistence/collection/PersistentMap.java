@@ -31,55 +31,61 @@ import org.granite.messaging.persistence.PersistentCollectionSnapshot;
 /**
  * @author Franck WOLFF
  */
-public class PersistentMap<K, V> extends AbstractPersistentMapCollection<K, V, Map<K, V>> implements Map<K, V> {
+public class PersistentMap<K, V> extends AbstractPersistentMapCollection<K, V, Map<K, V>> {
 
     private static final long serialVersionUID = 1L;
-	
-	public PersistentMap() {
+
+    public PersistentMap() {
+    }
+
+    public PersistentMap(boolean initialized) {
+	this(initialized ? new HashMap<K, V>() : null, false);
+    }
+
+    public PersistentMap(Map<K, V> collection) {
+	this(collection, true);
+    }
+
+    public PersistentMap(Map<K, V> collection, boolean clone) {
+	if (collection instanceof SortedMap) {
+	    throw new IllegalArgumentException("Should not be a SortedMap: " + collection);
 	}
 
-	public PersistentMap(boolean initialized) {
-		this(initialized ? new HashMap<K, V>() : null, false);
+	if (collection != null) {
+	    init(clone ? new HashMap<>(collection) : collection, null, false);
 	}
+    }
 
-	public PersistentMap(Map<K, V> collection) {		
-		this(collection, true);
-	}
+    @Override
+    public void doInitialize(Map<K, V> map, boolean empty) {
+	init(empty ? new HashMap<K, V>() : map, null, false);
+    }
 
-	public PersistentMap(Map<K, V> collection, boolean clone) {	
-		if (collection instanceof SortedMap)
-			throw new IllegalArgumentException("Should not be a SortedMap: " + collection);
-		
-		if (collection != null)
-			init(clone ? new HashMap<K, V>(collection) : collection, null, false);
+    @Override
+    protected PersistentCollectionSnapshot createSnapshot(Object io, boolean forReading) {
+	PersistentCollectionSnapshotFactory factory = PersistentCollectionSnapshotFactory.newInstance(io);
+	if (forReading || !wasInitialized()) {
+	    return factory.newPersistentCollectionSnapshot(getDetachedState());
 	}
-	
-	@Override
-	public void doInitialize(Map<K, V> map, boolean empty) {
-		init(empty ? new HashMap<K, V>() : map, null, false);
-	}
-	
-	@Override
-	protected PersistentCollectionSnapshot createSnapshot(Object io, boolean forReading) {
-		PersistentCollectionSnapshotFactory factory = PersistentCollectionSnapshotFactory.newInstance(io);
-		if (forReading || !wasInitialized())
-			return factory.newPersistentCollectionSnapshot(getDetachedState());
-		return factory.newPersistentCollectionSnapshot(true, getDetachedState(), isDirty(), this);
-	}
+	return factory.newPersistentCollectionSnapshot(true, getDetachedState(), isDirty(), this);
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	protected void updateFromSnapshot(ObjectInput in, PersistentCollectionSnapshot snapshot) {
-		if (snapshot.isInitialized())
-			init(new HashMap<K, V>((Map<K, V>)snapshot.getElementsAsMap()), snapshot.getDetachedState(), snapshot.isDirty());
-		else
-			init(null, snapshot.getDetachedState(), false);
+    @SuppressWarnings("unchecked")
+    @Override
+    protected void updateFromSnapshot(ObjectInput in, PersistentCollectionSnapshot snapshot) {
+	if (snapshot.isInitialized()) {
+	    init(new HashMap<>((Map<K, V>) snapshot.getElementsAsMap()), snapshot.getDetachedState(), snapshot.isDirty());
+	} else {
+	    init(null, snapshot.getDetachedState(), false);
 	}
-	
+    }
+
+    @Override
     public PersistentMap<K, V> clone(boolean uninitialize) {
-    	PersistentMap<K, V> map = new PersistentMap<K, V>();
-    	if (wasInitialized() && !uninitialize)
-    		map.init(getCollection(), null, isDirty());
-        return map;
+	PersistentMap<K, V> map = new PersistentMap<>();
+	if (wasInitialized() && !uninitialize) {
+	    map.init(getCollection(), null, isDirty());
+	}
+	return map;
     }
 }

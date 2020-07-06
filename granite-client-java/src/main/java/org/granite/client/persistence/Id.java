@@ -32,6 +32,7 @@ import java.lang.annotation.Target;
  * @author William DRAI
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
+@Target({ ElementType.FIELD })
 public @interface Id {
+    // Empty.
 }

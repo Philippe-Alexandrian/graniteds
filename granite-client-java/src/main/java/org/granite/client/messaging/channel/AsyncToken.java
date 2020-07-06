@@ -46,171 +46,177 @@ import org.granite.logging.Logger;
  * @author Franck WOLFF
  */
 public class AsyncToken extends TimerTask implements ResponseMessageFuture {
-	
-	private static final Logger log = Logger.getLogger(AsyncToken.class);
-	
-	private final RequestMessage request;
-	private final List<ResponseListener> listeners = new ArrayList<ResponseListener>();
-	
-	private Event event = null;
-	
-	private ResponseListener channelListener = null;
-	
-	public AsyncToken(RequestMessage request) {
-		this(request, (ResponseListener[])null);
+
+    private static final Logger log = Logger.getLogger(AsyncToken.class);
+
+    private final RequestMessage request;
+    private final List<ResponseListener> listeners = new ArrayList<>();
+
+    private Event event = null;
+
+    private ResponseListener channelListener = null;
+
+    public AsyncToken(RequestMessage request) {
+	this(request, (ResponseListener[]) null);
+    }
+
+    public AsyncToken(RequestMessage request, ResponseListener listener) {
+	this(request, (listener == null ? null : new ResponseListener[] { listener }));
+    }
+
+    public AsyncToken(RequestMessage request, ResponseListener[] listeners) {
+	if (request == null) {
+	    throw new NullPointerException("request cannot be null");
 	}
-	
-	public AsyncToken(RequestMessage request, ResponseListener listener) {
-		this(request, (listener == null ? null : new ResponseListener[]{listener}));
-	}
-	
-	public AsyncToken(RequestMessage request, ResponseListener[] listeners) {
-		if (request == null)
-			throw new NullPointerException("request cannot be null");
-		this.request = request;
-		
-		if (listeners != null) {
-			for (ResponseListener listener : listeners) {
-				if (listener == null)
-					throw new NullPointerException("listeners cannot contain null values");
-				this.listeners.add(listener);
-			}
+	this.request = request;
+
+	if (listeners != null) {
+	    for (ResponseListener listener : listeners) {
+		if (listener == null) {
+		    throw new NullPointerException("listeners cannot contain null values");
 		}
+		this.listeners.add(listener);
+	    }
 	}
+    }
 
-	public String getId() {
-		return request.getId();
-	}
+    public String getId() {
+	return this.request.getId();
+    }
 
-	public RequestMessage getRequest() {
-		return request;
-	}
-	
-	public boolean isDisconnectRequest() {
-		return request instanceof DisconnectMessage;
-	}
-	
-	public synchronized Event setChannelListener(ResponseListener channelListener) {
-		if (event == null)
-			this.channelListener = channelListener;
-		return event;
-	}
+    public RequestMessage getRequest() {
+	return this.request;
+    }
 
-	@Override
-	public void run() {
+    public boolean isDisconnectRequest() {
+	return this.request instanceof DisconnectMessage;
+    }
+
+    public synchronized Event setChannelListener(ResponseListener channelListener) {
+	if (this.event == null) {
+	    this.channelListener = channelListener;
+	}
+	return this.event;
+    }
+
+    @Override
+    public void run() {
+	try {
+	    // Try to dispatch a TimeoutEvent.
+	    dispatchTimeout(System.currentTimeMillis());
+	} catch (Throwable e) {
+	    log.error(e, "Error while executing token task for request " + this.request);
+	}
+    }
+
+    @Override
+    public boolean cancel() {
+	// Try to dispatch a CancelledEvent.
+	return dispatchCancelled();
+    }
+
+    @Override
+    public ResponseMessage get() throws InterruptedException, ExecutionException, TimeoutException {
+	return get(0);
+    }
+
+    @Override
+    public ResponseMessage get(long timeout) throws InterruptedException, ExecutionException, TimeoutException {
+	synchronized (this) {
+	    if (this.event == null) {
 		try {
-			// Try to dispatch a TimeoutEvent.
-			dispatchTimeout(System.currentTimeMillis());
+		    wait(timeout);
+		} catch (InterruptedException e) {
+		    if (dispatchCancelled()) {
+			throw e;
+		    }
 		}
-		catch (Throwable e) {
-			log.error(e, "Error while executing token task for request " + request);
-		}
+	    }
 	}
 
-	@Override
-	public boolean cancel() {
-		// Try to dispatch a CancelledEvent.
-		return dispatchCancelled();
+	return ResponseListenerDispatcher.getResponseMessage(this.event);
+    }
+
+    @Override
+    public synchronized boolean isCancelled() {
+	return this.event instanceof CancelledEvent;
+    }
+
+    @Override
+    public synchronized boolean isDone() {
+	return this.event != null;
+    }
+
+    public boolean dispatchResult(ResultMessage result) {
+	return dispatch(new ResultEvent(this.request, result));
+    }
+
+    public boolean dispatchFault(FaultMessage fault) {
+	return dispatch(new FaultEvent(this.request, fault));
+    }
+
+    public boolean dispatchFailure(Exception e) {
+	return dispatch(new FailureEvent(this.request, e));
+    }
+
+    public boolean dispatchTimeout(long millis) {
+	return dispatch(new TimeoutEvent(this.request, millis));
+    }
+
+    public boolean dispatchCancelled() {
+	return dispatch(new CancelledEvent(this.request));
+    }
+
+    private boolean dispatch(Event eventP) {
+
+	// Cancel this TimerTask.
+	super.cancel();
+
+	synchronized (this) {
+
+	    // Make sure we didn't dispatch a previous event.
+	    if (this.event != null) {
+		return false;
+	    }
+
+	    // Create the corresponding event.
+	    this.event = eventP;
+
+	    if (this.channelListener != null) {
+		ResponseListenerDispatcher.dispatch(this.channelListener, eventP);
+	    }
+
+	    // Wake up all threads waiting on the get() method.
+	    notifyAll();
 	}
 
-	@Override
-	public ResponseMessage get() throws InterruptedException, ExecutionException, TimeoutException {
-		return get(0);
+	// Call all listeners.
+	for (ResponseListener listener : this.listeners) {
+	    ResponseListenerDispatcher.dispatch(listener, eventP);
 	}
 
-	@Override
-	public ResponseMessage get(long timeout) throws InterruptedException, ExecutionException, TimeoutException {
-		synchronized (this) {
-			if (event == null) {
-				try {
-					wait(timeout);
-				}
-				catch (InterruptedException e) {
-					if (dispatchCancelled())
-						throw e;
-				}
-			}
-		}
-		
-		return ResponseListenerDispatcher.getResponseMessage(event);
-	}
+	// Release references on listeners to help gc
+	this.channelListener = null;
+	this.listeners.clear();
 
-	@Override
-	public synchronized boolean isCancelled() {
-		return event instanceof CancelledEvent;
-	}
+	return true;
+    }
 
-	@Override
-	public synchronized boolean isDone() {
-		return event != null;
+    @Override
+    public boolean equals(Object obj) {
+	if (obj == this) {
+	    return true;
 	}
+	return (obj instanceof AsyncToken) && this.request.getId().equals(((AsyncToken) obj).request.getId());
+    }
 
-	public boolean dispatchResult(ResultMessage result) {
-		return dispatch(new ResultEvent(request, result));
-	}
+    @Override
+    public int hashCode() {
+	return this.request.getId().hashCode();
+    }
 
-	public boolean dispatchFault(FaultMessage fault) {
-		return dispatch(new FaultEvent(request, fault));
-	}
-
-	public boolean dispatchFailure(Exception e) {
-		return dispatch(new FailureEvent(request, e));
-	}
-
-	public boolean dispatchTimeout(long millis) {
-		return dispatch(new TimeoutEvent(request, millis));
-	}
-
-	public boolean dispatchCancelled() {
-		return dispatch(new CancelledEvent(request));
-	}
-	
-	private boolean dispatch(Event event) {
-		
-		// Cancel this TimerTask.
-		super.cancel();
-		
-		synchronized (this) {
-			
-			// Make sure we didn't dispatch a previous event.
-			if (this.event != null)
-				return false;
-			
-			// Create the corresponding event.
-			this.event = event;
-			
-			if (channelListener != null)
-				ResponseListenerDispatcher.dispatch(channelListener, event);
-			
-			// Wake up all threads waiting on the get() method.
-			notifyAll();
-		}
-
-		// Call all listeners.
-		for (ResponseListener listener : listeners)
-			ResponseListenerDispatcher.dispatch(listener, event);
-		
-		// Release references on listeners to help gc
-		channelListener = null;
-		listeners.clear();
-		
-		return true;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == this)
-			return true;
-		return (obj instanceof AsyncToken) && request.getId().equals(((AsyncToken)obj).request.getId());
-	}
-
-	@Override
-	public int hashCode() {
-		return request.getId().hashCode();
-	}
-
-	@Override
-	public String toString() {
-		return getClass().getName() + " {request=" + request + "}";
-	}
+    @Override
+    public String toString() {
+	return getClass().getName() + " {request=" + this.request + "}";
+    }
 }

@@ -33,23 +33,23 @@ import org.granite.messaging.persistence.PersistentCollectionSnapshot;
  */
 public class JMFPersistentCollectionSnapshotFactory extends PersistentCollectionSnapshotFactory {
 
-	@Override
-	public PersistentCollectionSnapshot newPersistentCollectionSnapshot(String detachedState) {
-		return new JMFPersistentCollectionSnapshot(detachedState);
-	}
+    @Override
+    public PersistentCollectionSnapshot newPersistentCollectionSnapshot(String detachedState) {
+	return new JMFPersistentCollectionSnapshot(detachedState);
+    }
 
-	@Override
-	public PersistentCollectionSnapshot newPersistentCollectionSnapshot(boolean sorted, String detachedState) {
-		return new JMFPersistentCollectionSnapshot(sorted, detachedState);
-	}
+    @Override
+    public PersistentCollectionSnapshot newPersistentCollectionSnapshot(boolean sorted, String detachedState) {
+	return new JMFPersistentCollectionSnapshot(sorted, detachedState);
+    }
 
-	@Override
-	public PersistentCollectionSnapshot newPersistentCollectionSnapshot(boolean initialized, String detachedState, boolean dirty, Collection<?> collection) {
-		return new JMFPersistentCollectionSnapshot(initialized, detachedState, dirty, collection);
-	}
+    @Override
+    public PersistentCollectionSnapshot newPersistentCollectionSnapshot(boolean initialized, String detachedState, boolean dirty, Collection<?> collection) {
+	return new JMFPersistentCollectionSnapshot(initialized, detachedState, dirty, collection);
+    }
 
-	@Override
-	public PersistentCollectionSnapshot newPersistentCollectionSnapshot(boolean initialized, String detachedState, boolean dirty, Map<?, ?> collection) {
-		return new JMFPersistentCollectionSnapshot(initialized, detachedState, dirty, collection);
-	}
+    @Override
+    public PersistentCollectionSnapshot newPersistentCollectionSnapshot(boolean initialized, String detachedState, boolean dirty, Map<?, ?> collection) {
+	return new JMFPersistentCollectionSnapshot(initialized, detachedState, dirty, collection);
+    }
 }

@@ -33,61 +33,56 @@ import org.granite.client.messaging.messages.Message;
 public class TopicMessage extends AbstractMessage {
 
     private static final long serialVersionUID = 1L;
-	
-	private Object data;
-	
-	public TopicMessage() {
-	}
 
-	public TopicMessage(String clientId, Object data) {
-		super(clientId);
-		
-		this.data = data;
-	}
+    private Object data;
 
-	public TopicMessage(
-		String id,
-		String clientId,
-		long timestamp,
-		long timeToLive,
-		Map<String, Object> headers,
-		Object data) {
-		
-		super(id, clientId, timestamp, timeToLive, headers);
-		
-		this.data = data;
-	}
-	
-	@Override
-	public Type getType() {
-		return Type.TOPIC;
-	}
+    public TopicMessage() {
+    }
 
-	@Override
-	public Message copy() {
-		TopicMessage message = new TopicMessage();
+    public TopicMessage(String clientId, Object data) {
+	super(clientId);
 
-		super.copy(message);
-		
-		return message;
-	}
-	
-	public Object getData() {
-		return data;
-	}
-	
-	@Override
-	public String toString() {
-		if (data != null && data.getClass().isArray()) {
-			StringBuilder sb = new StringBuilder("MSG:[");
-			for (int idx = 0; idx < Array.getLength(data); idx++) {
-				if (idx > 0)
-					sb.append(", ");
-				sb.append(Array.get(data, idx));
-			}
-			sb.append("]");
-			return sb.toString();
+	this.data = data;
+    }
+
+    public TopicMessage(String id, String clientId, long timestamp, long timeToLive, Map<String, Object> headers, Object data) {
+
+	super(id, clientId, timestamp, timeToLive, headers);
+
+	this.data = data;
+    }
+
+    @Override
+    public Type getType() {
+	return Type.TOPIC;
+    }
+
+    @Override
+    public Message copy() {
+	TopicMessage message = new TopicMessage();
+
+	super.copy(message);
+
+	return message;
+    }
+
+    public Object getData() {
+	return this.data;
+    }
+
+    @Override
+    public String toString() {
+	if ((this.data != null) && this.data.getClass().isArray()) {
+	    StringBuilder sb = new StringBuilder("MSG:[");
+	    for (int idx = 0; idx < Array.getLength(this.data); idx++) {
+		if (idx > 0) {
+		    sb.append(", ");
 		}
-		return "MSG:" + data;
+		sb.append(Array.get(this.data, idx));
+	    }
+	    sb.append("]");
+	    return sb.toString();
 	}
+	return "MSG:" + this.data;
+    }
 }

@@ -28,13 +28,14 @@ import org.granite.client.messaging.messages.RequestMessage;
  */
 public abstract class AbstractIssueEvent implements IssueEvent {
 
-	private final RequestMessage request;
+    private final RequestMessage request;
 
-	public AbstractIssueEvent(RequestMessage request) {
-		this.request = request;
-	}
-	
-	public RequestMessage getRequest() {
-		return request;
-	}
+    public AbstractIssueEvent(RequestMessage request) {
+	this.request = request;
+    }
+
+    @Override
+    public RequestMessage getRequest() {
+	return this.request;
+    }
 }

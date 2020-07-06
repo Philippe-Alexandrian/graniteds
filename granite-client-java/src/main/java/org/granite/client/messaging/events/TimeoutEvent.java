@@ -30,29 +30,30 @@ import org.granite.client.messaging.messages.RequestMessage;
  */
 public class TimeoutEvent extends AbstractIssueEvent {
 
-	private final long time;
-	
-	public TimeoutEvent(RequestMessage request, long time) {
-		super(request);
-		
-		this.time = time;
-	}
+    private final long time;
 
-	@Override
-	public Type getType() {
-		return Type.TIMEOUT;
-	}
+    public TimeoutEvent(RequestMessage request, long time) {
+	super(request);
+
+	this.time = time;
+    }
+
+    @Override
+    public Type getType() {
+	return Type.TIMEOUT;
+    }
 
     /**
      * Time at which the time out occurred
+     * 
      * @return timeout timestamp
      */
-	public long getTime() {
-		return time;
-	}
+    public long getTime() {
+	return this.time;
+    }
 
-	@Override
-	public String toString() {
-		return getClass().getName() + " {timestamp=" + getRequest().getTimestamp() + " + timeToLive=" + getRequest().getTimeToLive() + " > time=" + time + "}";
-	}
+    @Override
+    public String toString() {
+	return getClass().getName() + " {timestamp=" + getRequest().getTimestamp() + " + timeToLive=" + getRequest().getTimeToLive() + " > time=" + this.time + "}";
+    }
 }

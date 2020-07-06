@@ -65,7 +65,7 @@ public class TestMessagingReconnect {
 
     @Parameterized.Parameters(name = "container: {0}, encoding: {1}, channel: {2}")
     public static Iterable<Object[]> data() {
-        return ContainerTestUtil.data();
+	return ContainerTestUtil.data();
     }
 
     private ContentType contentType;
@@ -75,178 +75,169 @@ public class TestMessagingReconnect {
     private static final ServerApp SERVER_APP = new ServerApp("/" + APP_NAME, false, "localhost", 8787);
 
     public TestMessagingReconnect(String containerClassName, ContentType contentType, String channelType) {
-        this.contentType = contentType;
-        this.channelType = channelType;
+	this.contentType = contentType;
+	this.channelType = channelType;
     }
 
     @BeforeClass
     public static void startContainer() throws Exception {
-        // Build a feed server application
-        WebArchive war = ShrinkWrap.create(WebArchive.class, APP_NAME + ".war");
-        war.addClasses(FeedApplication.class, FeedListener.class, Info.class);
-        war.addAsWebInfResource(new File("granite-client-java/src/test/resources/granite-config-server-reconnect.xml"), "granite/granite-config.xml");
+	// Build a feed server application
+	WebArchive war = ShrinkWrap.create(WebArchive.class, APP_NAME + ".war");
+	war.addClasses(FeedApplication.class, FeedListener.class, Info.class);
+	war.addAsWebInfResource(new File("granite-client-java/src/test/resources/granite-config-server-reconnect.xml"), "granite/granite-config.xml");
 
-        container = ContainerTestUtil.newContainer(war, true);
-        container.start();
-        log.info("Container started");
+	container = ContainerTestUtil.newContainer(war, true);
+	container.start();
+	log.info("Container started");
     }
 
     @AfterClass
     public static void stopContainer() throws Exception {
-        container.stop();
-        container.destroy();
-        log.info("Container stopped");
+	container.stop();
+	container.destroy();
+	log.info("Container stopped");
     }
 
     @Test
     public void testFeedSingleConsumerReconnect() throws Exception {
-        log.info("TestMessagingReconnect.testFeedSingleConsumerReconnect %s - %s", channelType, contentType);
-        CyclicBarrier[] barriers = new CyclicBarrier[4];
-        barriers[0] = new CyclicBarrier(2);
-        barriers[1] = new CyclicBarrier(2);
-        barriers[2] = new CyclicBarrier(2);
-        barriers[3] = new CyclicBarrier(2);
+	log.info("TestMessagingReconnect.testFeedSingleConsumerReconnect %s - %s", this.channelType, this.contentType);
+	CyclicBarrier[] barriers = new CyclicBarrier[4];
+	barriers[0] = new CyclicBarrier(2);
+	barriers[1] = new CyclicBarrier(2);
+	barriers[2] = new CyclicBarrier(2);
+	barriers[3] = new CyclicBarrier(2);
 
-        ConsumerThread consumer = new ConsumerThread("C", barriers);
-        consumer.start();
+	ConsumerThread consumer = new ConsumerThread("C", barriers);
+	consumer.start();
 
-        try {
-            barriers[0].await(5, TimeUnit.SECONDS);
-        }
-        catch (TimeoutException e) {
-            log.error(e, "Consumer subscription timeout");
-            Assert.fail("Consumer subscription failed");
-        }
+	try {
+	    barriers[0].await(5, TimeUnit.SECONDS);
+	} catch (TimeoutException e) {
+	    log.error(e, "Consumer subscription timeout");
+	    Assert.fail("Consumer subscription failed");
+	}
 
-        try {
-            barriers[1].await(10, TimeUnit.SECONDS);
-        }
-        catch (TimeoutException e) {
-            log.error(e, "Consumer reception before restart timeout");
-            Assert.fail("Consumer receive messages before restart failed");
-        }
+	try {
+	    barriers[1].await(10, TimeUnit.SECONDS);
+	} catch (TimeoutException e) {
+	    log.error(e, "Consumer reception before restart timeout");
+	    Assert.fail("Consumer receive messages before restart failed");
+	}
 
-        container.restart();
+	container.restart();
 
-        try {
-            barriers[2].await(50, TimeUnit.SECONDS);
-        }
-        catch (TimeoutException e) {
-            log.error(e, "Consumer reception after restart timeout");
-            Assert.fail("Consumer receive messages after restart failed");
-        }
+	try {
+	    barriers[2].await(50, TimeUnit.SECONDS);
+	} catch (TimeoutException e) {
+	    log.error(e, "Consumer reception after restart timeout");
+	    Assert.fail("Consumer receive messages after restart failed");
+	}
 
-        try {
-            barriers[3].await(5, TimeUnit.SECONDS);
-        }
-        catch (TimeoutException e) {
-            log.error(e, "Consumer unsubscription timeout");
-            Assert.fail("Consumer unsubscription failed");
-        }
+	try {
+	    barriers[3].await(5, TimeUnit.SECONDS);
+	} catch (TimeoutException e) {
+	    log.error(e, "Consumer unsubscription timeout");
+	    Assert.fail("Consumer unsubscription failed");
+	}
     }
 
     private class ConsumerThread implements Runnable {
 
-        private String id;
-        private List<Info> received = new ArrayList<Info>();
-        private CyclicBarrier[] barriers;
-        private Thread thread = new Thread(this);
-        private ChannelFactory channelFactory;
-        private Consumer consumer;
+	private String id;
+	private List<Info> received = new ArrayList<>();
+	private CyclicBarrier[] barriers;
+	private Thread thread = new Thread(this);
+	private ChannelFactory channelFactory;
+	private Consumer consumer;
 
-        public ConsumerThread(String id, CyclicBarrier[] barriers) {
-            this.id = id;
-            thread.setName(id);
-            this.barriers = barriers;
-        }
+	public ConsumerThread(String id, CyclicBarrier[] barriers) {
+	    this.id = id;
+	    this.thread.setName(id);
+	    this.barriers = barriers;
+	}
 
-        public void start() {
-            thread.start();
-        }
+	public void start() {
+	    this.thread.start();
+	}
 
-        private CountDownLatch waitToStop = new CountDownLatch(1);
+	private CountDownLatch waitToStop = new CountDownLatch(1);
 
-        @Override
-        public void run() {
-            channelFactory = ContainerTestUtil.buildChannelFactory(contentType);
-            final MessagingChannel channel = channelFactory.newMessagingChannel(channelType, "messagingamf", SERVER_APP);
+	@Override
+	public void run() {
+	    this.channelFactory = ContainerTestUtil.buildChannelFactory(TestMessagingReconnect.this.contentType);
+	    final MessagingChannel channel = this.channelFactory.newMessagingChannel(TestMessagingReconnect.this.channelType, "messagingamf", SERVER_APP);
 
-            consumer = new Consumer(channel, "feed", "feed");
-            consumer.addMessageListener(new ConsumerMessageListener());
-            consumer.subscribe(new ResultIssuesResponseListener() {
-                @Override
-                public void onResult(ResultEvent event) {
-                    log.info("Consumer %s: subscribed %s", id, channel.getClientId());
-                    try {
-                        barriers[0].await();
-                    }
-                    catch (Exception e) {
-                    }
-                }
+	    this.consumer = new Consumer(channel, "feed", "feed");
+	    this.consumer.addMessageListener(new ConsumerMessageListener());
+	    this.consumer.subscribe(new ResultIssuesResponseListener() {
+		@Override
+		public void onResult(ResultEvent event) {
+		    log.info("Consumer %s: subscribed %s", ConsumerThread.this.id, channel.getClientId());
+		    try {
+			ConsumerThread.this.barriers[0].await();
+		    } catch (Exception e) {
+		    }
+		}
 
-                @Override
-                public void onIssue(IssueEvent event) {
-                    log.error("Consumer %s: subscription failed %s", id, event.toString());
-                }
-            });
+		@Override
+		public void onIssue(IssueEvent event) {
+		    log.error("Consumer %s: subscription failed %s", ConsumerThread.this.id, event.toString());
+		}
+	    });
 
-            try {
-                if (!waitToStop.await(20, TimeUnit.SECONDS))
-                    log.error("Consumer %s time out", id);
-            }
-            catch (Exception e) {
-                log.error(e, "Consumer %s interrupted", id);
-            }
-            try {
-                channelFactory.stop();
-                barriers[3].await();
-            }
-            catch (Exception e) {
-                log.error(e, "Consumer %s did not terminate correctly", id);
-            }
-        }
+	    try {
+		if (!this.waitToStop.await(20, TimeUnit.SECONDS)) {
+		    log.error("Consumer %s time out", this.id);
+		}
+	    } catch (Exception e) {
+		log.error(e, "Consumer %s interrupted", this.id);
+	    }
+	    try {
+		this.channelFactory.stop();
+		this.barriers[3].await();
+	    } catch (Exception e) {
+		log.error(e, "Consumer %s did not terminate correctly", this.id);
+	    }
+	}
 
-        private class ConsumerMessageListener implements TopicMessageListener {
-            @Override
-            public void onMessage(TopicMessageEvent event) {
-                Info info = (Info)event.getData();
-                log.info("Consumer %s: received message %s", id, event.getData());
-                received.add(info);
+	private class ConsumerMessageListener implements TopicMessageListener {
+	    @Override
+	    public void onMessage(TopicMessageEvent event) {
+		Info info = (Info) event.getData();
+		log.info("Consumer %s: received message %s", ConsumerThread.this.id, event.getData());
+		ConsumerThread.this.received.add(info);
 
-                if (received.size() == 10) {
-                    log.info("Consumer %s: received all messages before restart", id);
-                    // All messages received
-                    try {
-                        barriers[1].await();
-                    }
-                    catch (Exception e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }
-                else if (received.size() == 20) {
-                    log.info("Consumer %s: received all messages after restart", id);
-                    // All messages received
-                    try {
-                        barriers[2].await();
-                    }
-                    catch (Exception e) {
-                        Thread.currentThread().interrupt();
-                    }
+		if (ConsumerThread.this.received.size() == 10) {
+		    log.info("Consumer %s: received all messages before restart", ConsumerThread.this.id);
+		    // All messages received
+		    try {
+			ConsumerThread.this.barriers[1].await();
+		    } catch (Exception e) {
+			Thread.currentThread().interrupt();
+		    }
+		} else if (ConsumerThread.this.received.size() == 20) {
+		    log.info("Consumer %s: received all messages after restart", ConsumerThread.this.id);
+		    // All messages received
+		    try {
+			ConsumerThread.this.barriers[2].await();
+		    } catch (Exception e) {
+			Thread.currentThread().interrupt();
+		    }
 
-                    consumer.unsubscribe(new ResultIssuesResponseListener() {
-                        @Override
-                        public void onResult(ResultEvent event) {
-                            log.info("Consumer %s: unsubscribed %s", id, event.getResult());
-                            waitToStop.countDown();
-                        }
+		    ConsumerThread.this.consumer.unsubscribe(new ResultIssuesResponseListener() {
+			@Override
+			public void onResult(ResultEvent event) {
+			    log.info("Consumer %s: unsubscribed %s", ConsumerThread.this.id, event.getResult());
+			    ConsumerThread.this.waitToStop.countDown();
+			}
 
-                        @Override
-                        public void onIssue(IssueEvent event) {
-                            log.error("Consumer %s: unsubscription failed %s", id, event.toString());
-                        }
-                    });
-                }
-            }
-        }
+			@Override
+			public void onIssue(IssueEvent event) {
+			    log.error("Consumer %s: unsubscription failed %s", ConsumerThread.this.id, event.toString());
+			}
+		    });
+		}
+	    }
+	}
     }
 }

@@ -31,96 +31,120 @@ import java.util.Set;
  */
 public abstract class AbstractPersistentMapCollection<K, V, C extends Map<K, V>> extends AbstractPersistentCollection<C> implements Map<K, V> {
 
-	private static final long serialVersionUID = 1L;
-	
-	public AbstractPersistentMapCollection() {
+    private static final long serialVersionUID = 1L;
+
+    public AbstractPersistentMapCollection() {
+    }
+
+    @Override
+    public int size() {
+	if (!checkInitializedRead()) {
+	    return 0;
+	}
+	return getCollection().size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+	if (!checkInitializedRead()) {
+	    return true;
+	}
+	return getCollection().isEmpty();
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+	if (!checkInitializedRead()) {
+	    return false;
+	}
+	return getCollection().containsKey(key);
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+	if (!checkInitializedRead()) {
+	    return false;
+	}
+	return getCollection().containsValue(value);
+    }
+
+    @Override
+    public V get(Object key) {
+	if (!checkInitializedRead()) {
+	    return null;
+	}
+	return getCollection().get(key);
+    }
+
+    @Override
+    public V put(K key, V value) {
+	return put(key, value, true);
+    }
+
+    protected V put(K key, V value, boolean checkInitialized) {
+	if (checkInitialized) {
+	    checkInitializedWrite();
 	}
 
-	public int size() {
-		if (!checkInitializedRead())
-			return 0;
-		return getCollection().size();
+	boolean containsKey = getCollection().containsKey(key);
+	V previousValue = getCollection().put(key, value);
+	if (!containsKey || (previousValue == null ? value != null : !previousValue.equals(value))) {
+	    dirty();
 	}
+	return previousValue;
+    }
 
-	public boolean isEmpty() {
-		if (!checkInitializedRead())
-			return true;
-		return getCollection().isEmpty();
-	}
+    @Override
+    public V remove(Object key) {
+	checkInitializedWrite();
 
-	public boolean containsKey(Object key) {
-		if (!checkInitializedRead())
-			return false;
-		return getCollection().containsKey(key);
+	boolean containsKey = getCollection().containsKey(key);
+	V removedValue = getCollection().remove(key);
+	if (containsKey) {
+	    dirty();
 	}
+	return removedValue;
+    }
 
-	public boolean containsValue(Object value) {
-		if (!checkInitializedRead())
-			return false;
-		return getCollection().containsValue(value);
-	}
+    @Override
+    public void putAll(Map<? extends K, ? extends V> m) {
+	checkInitializedWrite();
 
-	public V get(Object key) {
-		if (!checkInitializedRead())
-			return null;
-		return getCollection().get(key);
+	for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
+	    put(entry.getKey(), entry.getValue(), false);
 	}
+    }
 
-	public V put(K key, V value) {
-		return put(key, value, true);
+    @Override
+    public void clear() {
+	checkInitializedWrite();
+	if (!getCollection().isEmpty()) {
+	    getCollection().clear();
+	    dirty();
 	}
-	
-	protected V put(K key, V value, boolean checkInitialized) {
-		if (checkInitialized)
-			checkInitializedWrite();
-		
-		boolean containsKey = getCollection().containsKey(key);
-		V previousValue = getCollection().put(key, value);
-		if (!containsKey || (previousValue == null ? value != null : !previousValue.equals(value)))
-			dirty();
-		return previousValue;
-	}
+    }
 
-	public V remove(Object key) {
-		checkInitializedWrite();
-		
-		boolean containsKey = getCollection().containsKey(key);
-		V removedValue = getCollection().remove(key);
-		if (containsKey)
-			dirty();
-		return removedValue;
+    @Override
+    public Set<K> keySet() {
+	if (!checkInitializedRead()) {
+	    return Collections.emptySet();
 	}
+	return new SetProxy<>(getCollection().keySet());
+    }
 
-	public void putAll(Map<? extends K, ? extends V> m) {
-		checkInitializedWrite();
-		
-		for (Map.Entry<? extends K, ? extends V> entry : m.entrySet())
-			put(entry.getKey(), entry.getValue(), false);
+    @Override
+    public Collection<V> values() {
+	if (!checkInitializedRead()) {
+	    return Collections.emptySet();
 	}
+	return new CollectionProxy<>(getCollection().values());
+    }
 
-	public void clear() {
-		checkInitializedWrite();
-		if (!getCollection().isEmpty()) {
-			getCollection().clear();
-			dirty();
-		}
+    @Override
+    public Set<Map.Entry<K, V>> entrySet() {
+	if (!checkInitializedRead()) {
+	    return Collections.emptySet();
 	}
-
-	public Set<K> keySet() {
-		if (!checkInitializedRead())
-			return Collections.emptySet();
-		return new SetProxy<K>(getCollection().keySet());
-	}
-
-	public Collection<V> values() {
-		if (!checkInitializedRead())
-			return Collections.emptySet();
-		return new CollectionProxy<V>(getCollection().values());
-	}
-	
-	public Set<Map.Entry<K, V>> entrySet() {
-		if (!checkInitializedRead())
-			return Collections.emptySet();
-		return new SetProxy<Map.Entry<K, V>>(getCollection().entrySet());
-	}
+	return new SetProxy<>(getCollection().entrySet());
+    }
 }

@@ -25,7 +25,8 @@ package org.granite.client.messaging.messages;
  * @author Franck WOLFF
  */
 public interface MessageChain<T extends MessageChain<T>> extends Message, Iterable<T> {
-	
-	void setNext(T next);
-	T getNext();
+
+    void setNext(T next);
+
+    T getNext();
 }

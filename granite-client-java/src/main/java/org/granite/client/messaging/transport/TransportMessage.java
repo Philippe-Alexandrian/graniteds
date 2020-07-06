@@ -31,19 +31,19 @@ import org.granite.client.messaging.codec.MessagingCodec.ClientType;
  */
 public interface TransportMessage {
 
-	ClientType getClientType();
+    ClientType getClientType();
 
-	String getId();
-	
-	boolean isConnect();
-	
-	boolean isDisconnect();
-	
-	String getClientId();
-	
-	String getSessionId();
-	
-	String getContentType();
-	
-	void encode(OutputStream os) throws IOException;
+    String getId();
+
+    boolean isConnect();
+
+    boolean isDisconnect();
+
+    String getClientId();
+
+    String getSessionId();
+
+    String getContentType();
+
+    void encode(OutputStream os) throws IOException;
 }

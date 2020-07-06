@@ -21,18 +21,19 @@
  */
 package org.granite.client.test.server.data;
 
-import org.granite.messaging.service.annotations.RemoteDestination;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.ArrayList;
-import java.util.List;
+
+import org.granite.messaging.service.annotations.RemoteDestination;
 
 /**
  * Created by william on 30/09/13.
  */
-@RemoteDestination(id="dataService")
+@RemoteDestination(id = "dataService")
 @Stateless
 public class DataServiceBean {
 
@@ -40,15 +41,15 @@ public class DataServiceBean {
     private EntityManager entityManager;
 
     public void create(Data data) {
-        entityManager.persist(data);
+	this.entityManager.persist(data);
     }
 
     public List<Data> findAll() {
-        List<Data> all = entityManager.createQuery("select d from Data d", Data.class).getResultList();
-        return new ArrayList<Data>(all);    // GlassFish returns a Vector ???
+	List<Data> all = this.entityManager.createQuery("select d from Data d", Data.class).getResultList();
+	return new ArrayList<>(all); // GlassFish returns a Vector ???
     }
 
     public void fail() throws Exception {
-        throw new RuntimeException("fail");
+	throw new RuntimeException("fail");
     }
 }

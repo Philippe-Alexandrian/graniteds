@@ -32,77 +32,70 @@ import java.util.Map;
 public final class ResultMessage extends AbstractResponseMessage {
 
     private static final long serialVersionUID = 1L;
-	
-	private Object result;
-	
-	public ResultMessage() {
-	}
 
-	public ResultMessage(String clientId, String correlationId, Object result) {
-		super(clientId, correlationId);
-		
-		this.result = result;
-	}
+    private Object result;
 
-	public ResultMessage(
-		String id,
-		String clientId,
-		long timestamp,
-		long timeToLive,
-		Map<String, Object> headers,
-		String correlationId,
-		Object result) {
-		
-		super(id, clientId, timestamp, timeToLive, headers, correlationId);
-		
-		this.result = result;
-	}
+    public ResultMessage() {
+    }
 
-	@Override
-	public Type getType() {
-		return Type.RESULT;
-	}
+    public ResultMessage(String clientId, String correlationId, Object result) {
+	super(clientId, correlationId);
 
-	@Override
-	public Object getData() {
-		return result;
-	}
+	this.result = result;
+    }
 
-	public Object getResult() {
-		return result;
-	}
+    public ResultMessage(String id, String clientId, long timestamp, long timeToLive, Map<String, Object> headers, String correlationId, Object result) {
 
-	public void setResult(Object result) {
-		this.result = result;
-	}
+	super(id, clientId, timestamp, timeToLive, headers, correlationId);
 
-	@Override
-	public ResultMessage copy() {
-		ResultMessage message = new ResultMessage();
+	this.result = result;
+    }
 
-		super.copy(message);
-		
-		message.result = result;
-		
-		return message;
-	}
+    @Override
+    public Type getType() {
+	return Type.RESULT;
+    }
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		super.readExternal(in);
-		
-		this.result = in.readObject();
-	}
+    @Override
+    public Object getData() {
+	return this.result;
+    }
 
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-		super.writeExternal(out);
-		
-		out.writeObject(result);
-	}
+    public Object getResult() {
+	return this.result;
+    }
 
-	@Override
-	public StringBuilder toString(StringBuilder sb) {
-		return super.toString(sb).append("\n    result=").append(result);
-	}
+    public void setResult(Object result) {
+	this.result = result;
+    }
+
+    @Override
+    public ResultMessage copy() {
+	ResultMessage message = new ResultMessage();
+
+	super.copy(message);
+
+	message.result = this.result;
+
+	return message;
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	super.readExternal(in);
+
+	this.result = in.readObject();
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+	super.writeExternal(out);
+
+	out.writeObject(this.result);
+    }
+
+    @Override
+    public StringBuilder toString(StringBuilder sb) {
+	return super.toString(sb).append("\n    result=").append(this.result);
+    }
 }

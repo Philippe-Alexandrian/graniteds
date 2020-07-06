@@ -31,25 +31,26 @@ import org.granite.client.messaging.messages.responses.ResultMessage;
  */
 public class ResultEvent extends AbstractResponseEvent<ResultMessage> {
 
-	public ResultEvent(RequestMessage request, ResultMessage response) {
-		super(request, response);
-	}
+    public ResultEvent(RequestMessage request, ResultMessage response) {
+	super(request, response);
+    }
 
-	@Override
-	public Type getType() {
-		return Type.RESULT;
-	}
+    @Override
+    public Type getType() {
+	return Type.RESULT;
+    }
 
     /**
      * Result data received from the server
+     * 
      * @return result object
      */
-	public Object getResult() {
-		return response.getResult();
-	}
+    public Object getResult() {
+	return this.response.getResult();
+    }
 
-	@Override
-	public String toString() {
-		return getClass().getName() + " {result=" + response.getResult() + "}";
-	}
+    @Override
+    public String toString() {
+	return getClass().getName() + " {result=" + this.response.getResult() + "}";
+    }
 }

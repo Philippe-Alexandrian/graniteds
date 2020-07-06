@@ -29,5 +29,5 @@ import java.util.Set;
  */
 public interface ClassScanner {
 
-	Set<Class<?>> scan(Set<String> packageNames, Class<? extends Annotation> annotationClass);
+    Set<Class<?>> scan(Set<String> packageNames, Class<? extends Annotation> annotationClass);
 }

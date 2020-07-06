@@ -32,78 +32,80 @@ import org.granite.client.messaging.transport.TransportStatusHandler.NoopEngineS
  */
 public abstract class AbstractTransport<C> implements Transport {
 
-	private volatile C context;
-	private volatile TransportStatusHandler statusHandler = new LogEngineStatusHandler();
-	
-	protected final List<TransportStopListener> stopListeners = new ArrayList<TransportStopListener>();
+    private volatile C context;
+    private volatile TransportStatusHandler statusHandler = new LogEngineStatusHandler();
 
+    protected final List<TransportStopListener> stopListeners = new ArrayList<>();
 
     public AbstractTransport() {
     }
 
     public AbstractTransport(C context) {
-        this.context = context;
+	this.context = context;
     }
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public void setContext(Object context) {
-		this.context = (C)context;
-	}
 
-	@Override
-	public C getContext() {
-		return context;
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public void setContext(Object context) {
+	this.context = (C) context;
+    }
 
-	@Override
+    @Override
+    public C getContext() {
+	return this.context;
+    }
+
+    @Override
     public boolean isDisconnectAfterAuthenticationFailure() {
-        return false;
+	return false;
     }
-	
-	@Override
-	public boolean isAuthenticationAfterReconnectWithRemoting() {
-		return false;
-	}
 
-	@Override
-	public void setStatusHandler(TransportStatusHandler statusHandler) {
-		if (statusHandler == null)
-			statusHandler = new NoopEngineStatusHandler();
-		this.statusHandler = statusHandler;
-	}
+    @Override
+    public boolean isAuthenticationAfterReconnectWithRemoting() {
+	return false;
+    }
 
-	@Override
-	public TransportStatusHandler getStatusHandler() {
-		return statusHandler;
+    @Override
+    public void setStatusHandler(TransportStatusHandler statusHandlerP) {
+	TransportStatusHandler statusHandlerL = statusHandlerP;
+	if (statusHandlerL == null) {
+	    statusHandlerL = new NoopEngineStatusHandler();
 	}
+	this.statusHandler = statusHandlerL;
+    }
 
-	@Override
-	public void addStopListener(TransportStopListener listener) {
-		synchronized (stopListeners) {
-			if (!stopListeners.contains(listener))
-				stopListeners.add(listener);
+    @Override
+    public TransportStatusHandler getStatusHandler() {
+	return this.statusHandler;
+    }
+
+    @Override
+    public void addStopListener(TransportStopListener listener) {
+	synchronized (this.stopListeners) {
+	    if (!this.stopListeners.contains(listener)) {
+		this.stopListeners.add(listener);
+	    }
+	}
+    }
+
+    @Override
+    public boolean removeStopListener(TransportStopListener listener) {
+	synchronized (this.stopListeners) {
+	    return this.stopListeners.remove(listener);
+	}
+    }
+
+    @Override
+    public void stop() {
+	synchronized (this.stopListeners) {
+	    for (TransportStopListener listener : this.stopListeners) {
+		try {
+		    listener.onStop(this);
+		} catch (Exception e) {
+		    // Empty.
 		}
+	    }
+	    this.stopListeners.clear();
 	}
-
-	@Override
-	public boolean removeStopListener(TransportStopListener listener) {
-		synchronized (stopListeners) {
-			return stopListeners.remove(listener);
-		}
-	}
-
-	@Override
-	public void stop() {
-		synchronized (stopListeners) {
-			for (TransportStopListener listener : stopListeners) {
-				try {
-					listener.onStop(this);
-				}
-				catch (Exception e) {
-				}
-			}
-			stopListeners.clear();
-		}
-	}
+    }
 }

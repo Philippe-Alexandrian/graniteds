@@ -21,14 +21,15 @@
  */
 package org.granite.client.test.server.feed;
 
-import flex.messaging.messages.AsyncMessage;
-import org.granite.gravity.Gravity;
-import org.granite.gravity.GravityManager;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+
+import org.granite.gravity.Gravity;
+import org.granite.gravity.GravityManager;
+
+import flex.messaging.messages.AsyncMessage;
 
 /**
  * Created by william on 30/09/13.
@@ -40,50 +41,50 @@ public class FeedListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
-        Feed feed = new Feed(servletContextEvent.getServletContext());
-        feedThread = new Thread(feed);
-        feedThread.start();
+	Feed feed = new Feed(servletContextEvent.getServletContext());
+	this.feedThread = new Thread(feed);
+	this.feedThread.start();
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
-        feedThread.interrupt();
+	this.feedThread.interrupt();
     }
 
     private static class Feed implements Runnable {
 
-        private final ServletContext servletContext;
+	private final ServletContext servletContext;
 
-        public Feed(ServletContext servletContext) {
-            this.servletContext = servletContext;
-        }
+	public Feed(ServletContext servletContext) {
+	    this.servletContext = servletContext;
+	}
 
-        @Override
-        public void run() {
-            int count = 1;
+	@Override
+	public void run() {
+	    int count = 1;
 
-            while (true) {
-                try {
-                    Thread.sleep(250L);
-                }
-                catch (InterruptedException e) {
-                    return;
-                }
+	    while (true) {
+		try {
+		    Thread.sleep(250L);
+		} catch (InterruptedException e) {
+		    return;
+		}
 
-                Gravity gravity = GravityManager.getGravity(servletContext);
-                if (gravity == null)
-                    continue;
+		Gravity gravity = GravityManager.getGravity(this.servletContext);
+		if (gravity == null) {
+		    continue;
+		}
 
-                Info info = new Info();
-                info.setName("INFO" + (count++));
-                info.setValue(Math.random() * 100.0);
+		Info info = new Info();
+		info.setName("INFO" + (count++));
+		info.setValue(Math.random() * 100.0);
 
-                AsyncMessage message = new AsyncMessage();
-                message.setHeader(AsyncMessage.SUBTOPIC_HEADER, "feed");
-                message.setDestination("feed");
-                message.setBody(info);
-                gravity.publishMessage(message);
-            }
-        }
+		AsyncMessage message = new AsyncMessage();
+		message.setHeader(AsyncMessage.SUBTOPIC_HEADER, "feed");
+		message.setDestination("feed");
+		message.setBody(info);
+		gravity.publishMessage(message);
+	    }
+	}
     }
 }

@@ -28,9 +28,9 @@ package org.granite.client.messaging.channel;
  */
 public interface RemotingChannel extends Channel {
 
-	static final int DEFAULT_MAX_CONCURRENT_REQUESTS = 5;
-	
-	public void clearCredentials();
-	
-	public void reauthenticate() throws ChannelException;
+    static final int DEFAULT_MAX_CONCURRENT_REQUESTS = 5;
+
+    public void clearCredentials();
+
+    public void reauthenticate() throws ChannelException;
 }

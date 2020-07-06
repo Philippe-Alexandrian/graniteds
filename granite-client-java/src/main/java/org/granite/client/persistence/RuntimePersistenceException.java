@@ -26,20 +26,20 @@ package org.granite.client.persistence;
  */
 public class RuntimePersistenceException extends RuntimeException {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public RuntimePersistenceException() {
-	}
+    public RuntimePersistenceException() {
+    }
 
-	public RuntimePersistenceException(String message) {
-		super(message);
-	}
+    public RuntimePersistenceException(String message) {
+	super(message);
+    }
 
-	public RuntimePersistenceException(Throwable cause) {
-		super(cause);
-	}
+    public RuntimePersistenceException(Throwable cause) {
+	super(cause);
+    }
 
-	public RuntimePersistenceException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    public RuntimePersistenceException(String message, Throwable cause) {
+	super(message, cause);
+    }
 }

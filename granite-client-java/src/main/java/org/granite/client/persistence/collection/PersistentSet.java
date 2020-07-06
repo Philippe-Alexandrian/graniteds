@@ -35,44 +35,49 @@ import org.granite.messaging.persistence.PersistentCollectionSnapshot;
 public class PersistentSet<E> extends AbstractPersistentSimpleCollection<E, Set<E>> implements Set<E> {
 
     private static final long serialVersionUID = 1L;
-	
-	public PersistentSet() {
+
+    public PersistentSet() {
+    }
+
+    public PersistentSet(boolean initialized) {
+	this(initialized ? new HashSet<E>() : null, false);
+    }
+
+    public PersistentSet(Set<E> collection) {
+	this(collection, true);
+    }
+
+    public PersistentSet(Set<E> collection, boolean clone) {
+	if (collection instanceof SortedSet) {
+	    throw new IllegalArgumentException("Should not be a SortedSet: " + collection);
 	}
 
-	public PersistentSet(boolean initialized) {
-		this(initialized ? new HashSet<E>() : null, false);
+	if (collection != null) {
+	    init(clone ? new HashSet<>(collection) : collection, null, false);
 	}
+    }
 
-	public PersistentSet(Set<E> collection) {		
-		this(collection, true);
-	}
+    @Override
+    public void doInitialize(Set<E> set, boolean empty) {
+	init(empty ? new HashSet<E>() : set, null, false);
+    }
 
-	public PersistentSet(Set<E> collection, boolean clone) {		
-		if (collection instanceof SortedSet)
-			throw new IllegalArgumentException("Should not be a SortedSet: " + collection);
-		
-		if (collection != null)
-			init(clone ? new HashSet<E>(collection) : collection, null, false);
+    @SuppressWarnings("unchecked")
+    @Override
+    protected void updateFromSnapshot(ObjectInput in, PersistentCollectionSnapshot snapshot) {
+	if (snapshot.isInitialized()) {
+	    init(new HashSet<E>((Collection<? extends E>) snapshot.getElementsAsCollection()), snapshot.getDetachedState(), snapshot.isDirty());
+	} else {
+	    init(null, snapshot.getDetachedState(), false);
 	}
-	
-	@Override
-	public void doInitialize(Set<E> set, boolean empty) {
-		init(empty ? new HashSet<E>() : set, null, false);
-	}
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	protected void updateFromSnapshot(ObjectInput in, PersistentCollectionSnapshot snapshot) {
-		if (snapshot.isInitialized())
-			init(new HashSet<E>((Collection<? extends E>)snapshot.getElementsAsCollection()), snapshot.getDetachedState(), snapshot.isDirty());
-		else
-			init(null, snapshot.getDetachedState(), false);
-	}
-	
+    @Override
     public PersistentSet<E> clone(boolean uninitialize) {
-    	PersistentSet<E> set = new PersistentSet<E>();
-    	if (wasInitialized() && !uninitialize)
-    		set.init(getCollection(), null, isDirty());
-        return set; 
+	PersistentSet<E> set = new PersistentSet<>();
+	if (wasInitialized() && !uninitialize) {
+	    set.init(getCollection(), null, isDirty());
+	}
+	return set;
     }
 }

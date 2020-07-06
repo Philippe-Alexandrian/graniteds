@@ -32,47 +32,42 @@ import org.granite.client.messaging.messages.responses.FaultMessage.Code;
  */
 public class FaultEvent extends AbstractResponseEvent<FaultMessage> implements IssueEvent {
 
-	public FaultEvent(RequestMessage request, FaultMessage response) {
-		super(request, response);
-	}
+    public FaultEvent(RequestMessage request, FaultMessage response) {
+	super(request, response);
+    }
 
-	@Override
-	public Type getType() {
-		return Type.FAULT;
-	}
-	
-	public Code getCode() {
-		return response.getCode();
-	}
+    @Override
+    public Type getType() {
+	return Type.FAULT;
+    }
 
-	public String getDescription() {
-		return response.getDescription();
-	}
+    public Code getCode() {
+	return this.response.getCode();
+    }
 
-	public String getDetails() {
-		return response.getDetails();
-	}
+    public String getDescription() {
+	return this.response.getDescription();
+    }
 
-	public Object getCause() {
-		return response.getCause();
-	}
+    public String getDetails() {
+	return this.response.getDetails();
+    }
 
-	public Map<String, Object> getExtended() {
-		return response.getExtended();
-	}
+    public Object getCause() {
+	return this.response.getCause();
+    }
 
-	public String getUnknownCode() {
-		return response.getUnknownCode();
-	}
+    public Map<String, Object> getExtended() {
+	return this.response.getExtended();
+    }
 
-	@Override
-	public String toString() {
-		return getClass().getName() + "{code=" + getCode() +
-			", description=" + getDescription() +
-			", details=" + getDetails() +
-			", cause=" + getCause() +
-			", extended=" + getExtended() +
-			", unknownCode=" + getUnknownCode() +
-		"}";
-	}
+    public String getUnknownCode() {
+	return this.response.getUnknownCode();
+    }
+
+    @Override
+    public String toString() {
+	return getClass().getName() + "{code=" + getCode() + ", description=" + getDescription() + ", details=" + getDetails() + ", cause=" + getCause() + ", extended="
+		+ getExtended() + ", unknownCode=" + getUnknownCode() + "}";
+    }
 }

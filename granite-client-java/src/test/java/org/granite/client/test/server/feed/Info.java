@@ -21,15 +21,15 @@
  */
 package org.granite.client.test.server.feed;
 
+import java.io.Serializable;
+
 import org.granite.messaging.amf.io.util.externalizer.DefaultExternalizer;
 import org.granite.messaging.amf.io.util.externalizer.annotation.ExternalizedBean;
-
-import java.io.Serializable;
 
 /**
  * Created by william on 30/09/13.
  */
-@ExternalizedBean(type=DefaultExternalizer.class)
+@ExternalizedBean(type = DefaultExternalizer.class)
 public class Info implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -38,23 +38,23 @@ public class Info implements Serializable {
     private double value;
 
     public String getName() {
-        return name;
+	return this.name;
     }
 
     public void setName(String name) {
-        this.name = name;
+	this.name = name;
     }
 
     public double getValue() {
-        return value;
+	return this.value;
     }
 
     public void setValue(double value) {
-        this.value = value;
+	this.value = value;
     }
 
     @Override
     public String toString() {
-        return name + " = " + value;
+	return this.name + " = " + this.value;
     }
 }

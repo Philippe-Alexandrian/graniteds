@@ -48,145 +48,155 @@ import org.granite.util.JMFAMFUtil;
  */
 public class JMFChannelFactory extends AbstractChannelFactory {
 
-	private ClientSharedContext sharedContext = null;
-	
-	private List<ExtendedObjectCodec> extendedCodecs = null;
-	private List<String> defaultStoredStrings = null;
-	private Reflection reflection = null;
+    private ClientSharedContext sharedContext = null;
+
+    private List<ExtendedObjectCodec> extendedCodecs = null;
+    private List<String> defaultStoredStrings = null;
+    private Reflection reflection = null;
 
     /**
      * Create a default JMF channel factory with a basic configuration
      */
-	public JMFChannelFactory() {
-		super(ContentType.JMF_AMF);
-	}
+    public JMFChannelFactory() {
+	super(ContentType.JMF_AMF);
+    }
 
     /**
      * Create a default JMF channel factory with the basic configuration and for the specified platform context
+     * 
      * @param context platform context
      * @see org.granite.client.platform.Platform
      */
-	public JMFChannelFactory(Object context) {
-		super(ContentType.JMF_AMF, context);
-	}
+    public JMFChannelFactory(Object context) {
+	super(ContentType.JMF_AMF, context);
+    }
 
     /**
      * Create an AMF channel factory with the specified configuration and transports and for the specified platform context
+     * 
      * @param context platform context
      * @param sharedContext serialization context
      * @param remotingTransport remoting transport
      * @param messagingTransport messaging transport
      */
-	public JMFChannelFactory(Object context, ClientSharedContext sharedContext, Transport remotingTransport, Transport messagingTransport) {
-		super(ContentType.JMF_AMF, context, remotingTransport, messagingTransport);
-		
-		this.sharedContext = sharedContext;
-	}
+    public JMFChannelFactory(Object context, ClientSharedContext sharedContext, Transport remotingTransport, Transport messagingTransport) {
+	super(ContentType.JMF_AMF, context, remotingTransport, messagingTransport);
+
+	this.sharedContext = sharedContext;
+    }
 
     /**
      * Current shared serialization context
+     * 
      * @return shared context
      */
-	public ClientSharedContext getSharedContext() {
-		return sharedContext;
-	}
+    public ClientSharedContext getSharedContext() {
+	return this.sharedContext;
+    }
 
     /**
      * Set current shared serialization context
+     * 
      * @param sharedContext shared context
      */
-	public void setSharedContext(ClientSharedContext sharedContext) {
-		this.sharedContext = sharedContext;
-	}
+    public void setSharedContext(ClientSharedContext sharedContext) {
+	this.sharedContext = sharedContext;
+    }
 
     /**
      * Current extended codecs
+     * 
      * @return extended codecs
      */
-	public List<ExtendedObjectCodec> getExtendedCodecs() {
-		return extendedCodecs;
-	}
+    public List<ExtendedObjectCodec> getExtendedCodecs() {
+	return this.extendedCodecs;
+    }
 
     /**
      * Set custom extended codecs
+     * 
      * @param extendedCodecs extended codecs
      */
-	public void setExtendedCodecs(List<ExtendedObjectCodec> extendedCodecs) {
-		this.extendedCodecs = extendedCodecs;
-	}
+    public void setExtendedCodecs(List<ExtendedObjectCodec> extendedCodecs) {
+	this.extendedCodecs = extendedCodecs;
+    }
 
     /**
      * Current stored strings
+     * 
      * @return stored strings
      */
-	public List<String> getDefaultStoredStrings() {
-		return defaultStoredStrings;
-	}
+    public List<String> getDefaultStoredStrings() {
+	return this.defaultStoredStrings;
+    }
 
     /**
      * Set stored strings
+     * 
      * @param defaultStoredStrings stored strings
      */
-	public void setDefaultStoredStrings(List<String> defaultStoredStrings) {
-		this.defaultStoredStrings = defaultStoredStrings;
-	}
+    public void setDefaultStoredStrings(List<String> defaultStoredStrings) {
+	this.defaultStoredStrings = defaultStoredStrings;
+    }
 
     /**
      * Current reflection provider
+     * 
      * @return reflection
      */
-	public Reflection getReflection() {
-		return reflection;
-	}
+    public Reflection getReflection() {
+	return this.reflection;
+    }
 
     /**
      * Set reflection provider
+     * 
      * @param reflection
      */
-	public void setReflection(Reflection reflection) {
-		this.reflection = reflection;
-	}
+    public void setReflection(Reflection reflection) {
+	this.reflection = reflection;
+    }
 
-	@Override
-	public void start() {
-		super.start();
-		
-		if (sharedContext == null) {
-			
-			extendedCodecs = (extendedCodecs != null ? extendedCodecs : new ArrayList<ExtendedObjectCodec>(Arrays.asList(new ClientEntityCodec())));
-			defaultStoredStrings = (defaultStoredStrings != null ? defaultStoredStrings : new ArrayList<String>(JMFAMFUtil.AMF_DEFAULT_STORED_STRINGS));
-			reflection = (reflection != null ? reflection : Platform.reflection());
-			
-			sharedContext = new DefaultClientSharedContext(new DefaultCodecRegistry(extendedCodecs), defaultStoredStrings, reflection, aliasRegistry);
-		}
-	}
+    @Override
+    public void start() {
+	super.start();
 
-	@Override
-	public void stop(boolean stopTransports) {
-		try {
-			super.stop(stopTransports);
-		}
-		finally {
-			sharedContext = null;
-			
-			extendedCodecs = null;
-			defaultStoredStrings = null;
-			reflection = null;
-		}
-	}
+	if (this.sharedContext == null) {
 
-	@Override
-	protected Class<? extends RemotingChannel> getRemotingChannelClass() {
-        return JMFRemotingChannel.class;
+	    this.extendedCodecs = (this.extendedCodecs != null ? this.extendedCodecs : new ArrayList<>(Arrays.asList(new ClientEntityCodec())));
+	    this.defaultStoredStrings = (this.defaultStoredStrings != null ? this.defaultStoredStrings : new ArrayList<>(JMFAMFUtil.AMF_DEFAULT_STORED_STRINGS));
+	    this.reflection = (this.reflection != null ? this.reflection : Platform.reflection());
+
+	    this.sharedContext = new DefaultClientSharedContext(new DefaultCodecRegistry(this.extendedCodecs), this.defaultStoredStrings, this.reflection, this.aliasRegistry);
 	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
+    }
+
+    @Override
+    public void stop(boolean stopTransports) {
+	try {
+	    super.stop(stopTransports);
+	} finally {
+	    this.sharedContext = null;
+
+	    this.extendedCodecs = null;
+	    this.defaultStoredStrings = null;
+	    this.reflection = null;
+	}
+    }
+
+    @Override
+    protected Class<? extends RemotingChannel> getRemotingChannelClass() {
+	return JMFRemotingChannel.class;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
     protected <M> MessagingCodec<M> newMessagingCodec(Class<M> messageClass) {
-        if (messageClass == flex.messaging.messages.Message[].class)
-            return (MessagingCodec<M>)new JMFAMF3MessagingCodec(getSharedContext());
-        else if (messageClass == AMF0Message.class)
-            return (MessagingCodec<M>)new JMFAMF0MessagingCodec(getSharedContext());
-        throw new IllegalArgumentException("Unknown message class " + messageClass);
+	if (messageClass == flex.messaging.messages.Message[].class) {
+	    return (MessagingCodec<M>) new JMFAMF3MessagingCodec(getSharedContext());
+	} else if (messageClass == AMF0Message.class) {
+	    return (MessagingCodec<M>) new JMFAMF0MessagingCodec(getSharedContext());
+	}
+	throw new IllegalArgumentException("Unknown message class " + messageClass);
     }
 }

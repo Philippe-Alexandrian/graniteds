@@ -24,24 +24,22 @@ package org.granite.client.messaging;
 import org.granite.client.messaging.events.IssueEvent;
 import org.granite.client.messaging.events.ResultEvent;
 
-
 /**
- * Callback interface for message listeners
- * Called when an incoming message is received
+ * Callback interface for message listeners Called when an incoming message is received
  *
  * @author Franck WOLFF
  */
 public interface TopicSubscriptionListener {
 
-	void onSubscribing(Consumer consumer);
-	
-	void onSubscriptionSuccess(Consumer consumer, ResultEvent event, String subscriptionId);
+    void onSubscribing(Consumer consumer);
 
-	void onSubscriptionFault(Consumer consumer, IssueEvent event);
+    void onSubscriptionSuccess(Consumer consumer, ResultEvent event, String subscriptionId);
 
-	void onUnsubscribing(Consumer consumer);
-	
-	void onUnsubscriptionSuccess(Consumer consumer, ResultEvent event, String subscriptionId);
-	
-	void onUnsubscriptionFault(Consumer consumer, IssueEvent event, String subscriptionId);
+    void onSubscriptionFault(Consumer consumer, IssueEvent event);
+
+    void onUnsubscribing(Consumer consumer);
+
+    void onUnsubscriptionSuccess(Consumer consumer, ResultEvent event, String subscriptionId);
+
+    void onUnsubscriptionFault(Consumer consumer, IssueEvent event, String subscriptionId);
 }

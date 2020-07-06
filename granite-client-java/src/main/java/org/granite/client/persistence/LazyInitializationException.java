@@ -26,20 +26,20 @@ package org.granite.client.persistence;
  */
 public class LazyInitializationException extends RuntimePersistenceException {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public LazyInitializationException() {
-	}
+    public LazyInitializationException() {
+    }
 
-	public LazyInitializationException(String message) {
-		super(message);
-	}
+    public LazyInitializationException(String message) {
+	super(message);
+    }
 
-	public LazyInitializationException(Throwable cause) {
-		super(cause);
-	}
+    public LazyInitializationException(Throwable cause) {
+	super(cause);
+    }
 
-	public LazyInitializationException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    public LazyInitializationException(String message, Throwable cause) {
+	super(message, cause);
+    }
 }

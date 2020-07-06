@@ -32,7 +32,8 @@ public interface IncomingMessageEvent<M extends Message> extends Event {
 
     /**
      * Message received
+     * 
      * @return message received
      */
-	M getMessage();
+    M getMessage();
 }

@@ -30,6 +30,6 @@ import org.granite.gravity.config.servlet3.MessagingDestination;
 @ServerFilter
 public class ChatApplication {
 
-    @MessagingDestination(noLocal=true)
+    @MessagingDestination(noLocal = true)
     private String chat;
 }

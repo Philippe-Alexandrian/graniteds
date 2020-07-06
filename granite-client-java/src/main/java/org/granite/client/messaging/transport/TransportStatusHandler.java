@@ -27,34 +27,36 @@ import org.granite.logging.Logger;
  * @author Franck WOLFF
  */
 public interface TransportStatusHandler {
-	
-	void handleIO(boolean active);
 
-	void handleException(TransportException e);
+    void handleIO(boolean active);
 
-	static class NoopEngineStatusHandler implements TransportStatusHandler {
+    void handleException(TransportException e);
 
-		@Override
-		public void handleIO(boolean active) {
-		}
+    static class NoopEngineStatusHandler implements TransportStatusHandler {
 
-		@Override
-		public void handleException(TransportException e) {
-		}
+	@Override
+	public void handleIO(boolean active) {
+	    // Empty.
 	}
 
-	static class LogEngineStatusHandler implements TransportStatusHandler {
-		
-		private static final Logger log = Logger.getLogger(LogEngineStatusHandler.class);
-
-		@Override
-		public void handleIO(boolean active) {
-			log.debug(active ? "Starting IO" : "IO completed");
-		}
-
-		@Override
-		public void handleException(TransportException e) {
-			log.error(e, "Engine failed");
-		}
+	@Override
+	public void handleException(TransportException e) {
+	    // Empty.
 	}
+    }
+
+    static class LogEngineStatusHandler implements TransportStatusHandler {
+
+	private static final Logger log = Logger.getLogger(LogEngineStatusHandler.class);
+
+	@Override
+	public void handleIO(boolean active) {
+	    log.debug(active ? "Starting IO" : "IO completed");
+	}
+
+	@Override
+	public void handleException(TransportException e) {
+	    log.error(e, "Engine failed");
+	}
+    }
 }

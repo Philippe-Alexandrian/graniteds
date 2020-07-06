@@ -32,54 +32,61 @@ import org.granite.client.messaging.codec.MessagingCodec.ClientType;
  */
 public class DefaultTransportMessage<M> implements TransportMessage {
 
-	private final String id;
-	private final boolean connect;
-	private final boolean disconnect;
-	private final String clientId;
-	private final String sessionId;
-	private final M message;
-	private final MessagingCodec<M> codec;
+    private final String id;
+    private final boolean connect;
+    private final boolean disconnect;
+    private final String clientId;
+    private final String sessionId;
+    private final M message;
+    private final MessagingCodec<M> codec;
 
-	public DefaultTransportMessage(String id, boolean connect, boolean disconnect, String clientId, String sessionId, M message, MessagingCodec<M> codec) {
-		this.id = id;
-		this.connect = connect;
-		this.disconnect = disconnect;
-		this.clientId = clientId;
-		this.sessionId = sessionId;
-		this.message = message;
-		this.codec = codec;
-	}
+    public DefaultTransportMessage(String id, boolean connect, boolean disconnect, String clientId, String sessionId, M message, MessagingCodec<M> codec) {
+	this.id = id;
+	this.connect = connect;
+	this.disconnect = disconnect;
+	this.clientId = clientId;
+	this.sessionId = sessionId;
+	this.message = message;
+	this.codec = codec;
+    }
 
-	public ClientType getClientType() {
-		return codec.getClientType();
-	}
+    @Override
+    public ClientType getClientType() {
+	return this.codec.getClientType();
+    }
 
-	public String getId() {
-		return id;
-	}
-	
-	public boolean isConnect() {
-		return connect;
-	}
-	
-	public boolean isDisconnect() {
-		return disconnect;
-	}
-	
-	public String getClientId() {
-		return clientId;
-	}
-	
-	public String getSessionId() {
-		return sessionId;
-	}
+    @Override
+    public String getId() {
+	return this.id;
+    }
 
-	public String getContentType() {
-		return codec.getContentType();
-	}
+    @Override
+    public boolean isConnect() {
+	return this.connect;
+    }
 
-	@Override
-	public void encode(OutputStream os) throws IOException {
-		codec.encode(message, os);
-	}
+    @Override
+    public boolean isDisconnect() {
+	return this.disconnect;
+    }
+
+    @Override
+    public String getClientId() {
+	return this.clientId;
+    }
+
+    @Override
+    public String getSessionId() {
+	return this.sessionId;
+    }
+
+    @Override
+    public String getContentType() {
+	return this.codec.getContentType();
+    }
+
+    @Override
+    public void encode(OutputStream os) throws IOException {
+	this.codec.encode(this.message, os);
+    }
 }

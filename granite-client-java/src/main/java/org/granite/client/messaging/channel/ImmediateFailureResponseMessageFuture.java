@@ -31,36 +31,37 @@ import org.granite.client.messaging.messages.ResponseMessage;
  */
 public class ImmediateFailureResponseMessageFuture implements ResponseMessageFuture {
 
-	private final Exception cause;
-	
-	public ImmediateFailureResponseMessageFuture(Exception cause) {
-		if (cause == null)
-			throw new NullPointerException("cause cannot be null");
-		this.cause = cause;
-	}
+    private final Exception cause;
 
-	@Override
-	public boolean cancel() {
-		return false;
+    public ImmediateFailureResponseMessageFuture(Exception cause) {
+	if (cause == null) {
+	    throw new NullPointerException("cause cannot be null");
 	}
+	this.cause = cause;
+    }
 
-	@Override
-	public ResponseMessage get() throws InterruptedException, ExecutionException, TimeoutException {
-		throw new ExecutionException(cause);
-	}
+    @Override
+    public boolean cancel() {
+	return false;
+    }
 
-	@Override
-	public ResponseMessage get(long timeout) throws InterruptedException, ExecutionException, TimeoutException {
-		throw new ExecutionException(cause);
-	}
+    @Override
+    public ResponseMessage get() throws InterruptedException, ExecutionException, TimeoutException {
+	throw new ExecutionException(this.cause);
+    }
 
-	@Override
-	public boolean isCancelled() {
-		return false;
-	}
+    @Override
+    public ResponseMessage get(long timeout) throws InterruptedException, ExecutionException, TimeoutException {
+	throw new ExecutionException(this.cause);
+    }
 
-	@Override
-	public boolean isDone() {
-		return true;
-	}
+    @Override
+    public boolean isCancelled() {
+	return false;
+    }
+
+    @Override
+    public boolean isDone() {
+	return true;
+    }
 }

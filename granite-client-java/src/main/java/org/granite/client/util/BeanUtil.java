@@ -33,49 +33,50 @@ import java.lang.reflect.Modifier;
 public abstract class BeanUtil {
 
     public static PropertyDescriptor[] getProperties(Class<?> clazz) {
-        try {
-        	PropertyDescriptor[] properties = Introspector.getBeanInfo(clazz).getPropertyDescriptors();
-        	Field[] fields = clazz.getDeclaredFields();
-        	for (Field field : fields) {
-        		if (Boolean.class.equals(field.getType())) {
-        			boolean found = false;
-        			for (PropertyDescriptor property : properties) {
-        				if (property.getName().equals(field.getName())) {
-        					found = true;
-        					if (property.getReadMethod() == null) {
-        						try {
-        							Method readMethod = clazz.getDeclaredMethod(getIsMethodName(field.getName()));
-        							if (Modifier.isPublic(readMethod.getModifiers()) && !Modifier.isStatic(readMethod.getModifiers()))
-        								property.setReadMethod(readMethod);
-        						}
-        						catch (NoSuchMethodException e) {
-        						}
-        					}
-        					break;
-        				}
-        			}
-        			if (!found) {
-						try {
-							Method readMethod = clazz.getDeclaredMethod(getIsMethodName(field.getName()));
-							if (Modifier.isPublic(readMethod.getModifiers()) && !Modifier.isStatic(readMethod.getModifiers())) {
-								PropertyDescriptor[] propertiesTmp = new PropertyDescriptor[properties.length + 1];
-								System.arraycopy(properties, 0, propertiesTmp, 0, properties.length);
-								propertiesTmp[properties.length] = new PropertyDescriptor(field.getName(), readMethod, null);
-								properties = propertiesTmp;
-							}
-						}
-						catch (NoSuchMethodException e) {
-						}
-        			}
-        		}
-        	}
-            return properties;
-        } catch (Exception e) {
-            throw new RuntimeException("Could not introspect properties of class: " + clazz, e);
-        }
+	try {
+	    PropertyDescriptor[] properties = Introspector.getBeanInfo(clazz).getPropertyDescriptors();
+	    Field[] fields = clazz.getDeclaredFields();
+	    for (Field field : fields) {
+		if (Boolean.class.equals(field.getType())) {
+		    boolean found = false;
+		    for (PropertyDescriptor property : properties) {
+			if (property.getName().equals(field.getName())) {
+			    found = true;
+			    if (property.getReadMethod() == null) {
+				try {
+				    Method readMethod = clazz.getDeclaredMethod(getIsMethodName(field.getName()));
+				    if (Modifier.isPublic(readMethod.getModifiers()) && !Modifier.isStatic(readMethod.getModifiers())) {
+					property.setReadMethod(readMethod);
+				    }
+				} catch (NoSuchMethodException e) {
+				    // Empty.
+				}
+			    }
+			    break;
+			}
+		    }
+		    if (!found) {
+			try {
+			    Method readMethod = clazz.getDeclaredMethod(getIsMethodName(field.getName()));
+			    if (Modifier.isPublic(readMethod.getModifiers()) && !Modifier.isStatic(readMethod.getModifiers())) {
+				PropertyDescriptor[] propertiesTmp = new PropertyDescriptor[properties.length + 1];
+				System.arraycopy(properties, 0, propertiesTmp, 0, properties.length);
+				propertiesTmp[properties.length] = new PropertyDescriptor(field.getName(), readMethod, null);
+				properties = propertiesTmp;
+			    }
+			} catch (NoSuchMethodException e) {
+			    // Empty.
+			}
+		    }
+		}
+	    }
+	    return properties;
+	} catch (Exception e) {
+	    throw new RuntimeException("Could not introspect properties of class: " + clazz, e);
+	}
     }
-    
+
     private static String getIsMethodName(String name) {
-    	return "is" + name.substring(0, 1).toUpperCase() + name.substring(1);
+	return "is" + name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 }

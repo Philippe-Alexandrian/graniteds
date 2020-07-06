@@ -21,6 +21,11 @@
  */
 package org.granite.client.messaging.transport.jetty9;
 
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.net.HttpCookie;
+import java.nio.ByteBuffer;
+
 import org.eclipse.jetty.util.HttpCookieStore;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.websocket.api.Session;
@@ -33,183 +38,177 @@ import org.granite.client.messaging.transport.TransportMessage;
 import org.granite.client.messaging.transport.websocket.AbstractWebSocketTransport;
 import org.granite.logging.Logger;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.net.HttpCookie;
-import java.nio.ByteBuffer;
-
-
 /**
  * @author William DRAI
  */
 public class JettyWebSocketTransport extends AbstractWebSocketTransport<Session> {
-	
-	private static final Logger log = Logger.getLogger(JettyWebSocketTransport.class);
 
-	private WebSocketClient webSocketClient = null;
-	private SslContextFactory sslContextFactory = null;
-	
-	public void setSslContextFactory(SslContextFactory sslContextFactory) {
-		this.sslContextFactory = sslContextFactory;
-	}
+    private static final Logger log = Logger.getLogger(JettyWebSocketTransport.class);
 
-	@Override
-	public synchronized boolean start() {
-		if (isStarted())
-			return true;
+    private WebSocketClient webSocketClient = null;
+    private SslContextFactory sslContextFactory = null;
 
-		log.info("Starting Jetty 9 WebSocketClient transport...");
-		
-		try {
-			if (sslContextFactory == null)
-				webSocketClient = new WebSocketClient();			
-			else {
-				Constructor<WebSocketClient> c = WebSocketClient.class.getConstructor(SslContextFactory.class);
-				webSocketClient = c.newInstance(sslContextFactory);
-			}
-            webSocketClient.setMaxIdleTimeout(getMaxIdleTime());
-            webSocketClient.setMaxTextMessageBufferSize(1024);
-            webSocketClient.setMaxBinaryMessageBufferSize(getMaxMessageSize());
-            webSocketClient.setCookieStore(new HttpCookieStore());
-            webSocketClient.start();
-
-			log.info("Jetty 9 WebSocketClient transport started.");
-			return true;
-		}
-		catch (Exception e) {
-			webSocketClient = null;
-			getStatusHandler().handleException(new TransportException("Could not start Jetty 9 WebSocketFactory", e));
-			
-			log.error(e, "Jetty 9 WebSocketClient transport failed to start.");
-			return false;
-		}
-	}
-	
-	public synchronized boolean isStarted() {
-		return webSocketClient != null;
-	}
+    public void setSslContextFactory(SslContextFactory sslContextFactory) {
+	this.sslContextFactory = sslContextFactory;
+    }
 
     @Override
-	public void connect(final Channel channel, final TransportMessage transportMessage) {
-		try {
-            ClientUpgradeRequest request = new ClientUpgradeRequest();
-            request.setRequestURI(channel.getUri());
-
-            String protocol = "org.granite.gravity." + transportMessage.getContentType().substring("application/x-".length());
-            request.setSubProtocols(protocol);
-
-			if (transportMessage.getSessionId() != null)
-                webSocketClient.getCookieStore().add(channel.getUri(), new HttpCookie("JSESSIONID", transportMessage.getSessionId()));
-
-            request.setCookiesFrom(webSocketClient.getCookieStore());
-
-			request.setHeader("connectId", transportMessage.getId());
-            request.setHeader("GDSClientType", transportMessage.getClientType().toString());
-            String clientId = transportMessage.getClientId() != null ? transportMessage.getClientId() : channel.getClientId();
-            if (clientId != null)
-                request.setHeader("GDSClientId", clientId);
-
-            log.info("Connecting to websocket %s protocol %s sessionId %s clientId %s", channel.getUri(), protocol, transportMessage.getSessionId(), clientId);
-
-			webSocketClient.connect(new WebSocketHandler(channel), channel.getUri(), request);
-		}
-		catch (Exception e) {
-            log.error(e, "Could not connect to uri %s", channel.getUri());
-			getStatusHandler().handleException(new TransportException("Could not connect to uri " + channel.getUri(), e));
-		}
+    public synchronized boolean start() {
+	if (isStarted()) {
+	    return true;
 	}
+
+	log.info("Starting Jetty 9 WebSocketClient transport...");
+
+	try {
+	    if (this.sslContextFactory == null) {
+		this.webSocketClient = new WebSocketClient();
+	    } else {
+		Constructor<WebSocketClient> c = WebSocketClient.class.getConstructor(SslContextFactory.class);
+		this.webSocketClient = c.newInstance(this.sslContextFactory);
+	    }
+	    this.webSocketClient.setMaxIdleTimeout(getMaxIdleTime());
+	    this.webSocketClient.setMaxTextMessageBufferSize(1024);
+	    this.webSocketClient.setMaxBinaryMessageBufferSize(getMaxMessageSize());
+	    this.webSocketClient.setCookieStore(new HttpCookieStore());
+	    this.webSocketClient.start();
+
+	    log.info("Jetty 9 WebSocketClient transport started.");
+	    return true;
+	} catch (Exception e) {
+	    this.webSocketClient = null;
+	    getStatusHandler().handleException(new TransportException("Could not start Jetty 9 WebSocketFactory", e));
+
+	    log.error(e, "Jetty 9 WebSocketClient transport failed to start.");
+	    return false;
+	}
+    }
+
+    @Override
+    public synchronized boolean isStarted() {
+	return this.webSocketClient != null;
+    }
+
+    @Override
+    public void connect(final Channel channel, final TransportMessage transportMessage) {
+	try {
+	    ClientUpgradeRequest request = new ClientUpgradeRequest();
+	    request.setRequestURI(channel.getUri());
+
+	    String protocol = "org.granite.gravity." + transportMessage.getContentType().substring("application/x-".length());
+	    request.setSubProtocols(protocol);
+
+	    if (transportMessage.getSessionId() != null) {
+		this.webSocketClient.getCookieStore().add(channel.getUri(), new HttpCookie("JSESSIONID", transportMessage.getSessionId()));
+	    }
+
+	    request.setCookiesFrom(this.webSocketClient.getCookieStore());
+
+	    request.setHeader("connectId", transportMessage.getId());
+	    request.setHeader("GDSClientType", transportMessage.getClientType().toString());
+	    String clientId = transportMessage.getClientId() != null ? transportMessage.getClientId() : channel.getClientId();
+	    if (clientId != null) {
+		request.setHeader("GDSClientId", clientId);
+	    }
+
+	    log.info("Connecting to websocket %s protocol %s sessionId %s clientId %s", channel.getUri(), protocol, transportMessage.getSessionId(), clientId);
+
+	    this.webSocketClient.connect(new WebSocketHandler(channel), channel.getUri(), request);
+	} catch (Exception e) {
+	    log.error(e, "Could not connect to uri %s", channel.getUri());
+	    getStatusHandler().handleException(new TransportException("Could not connect to uri " + channel.getUri(), e));
+	}
+    }
 
     @Override
     public synchronized void stop() {
-        if (webSocketClient == null)
-            return;
+	if (this.webSocketClient == null) {
+	    return;
+	}
 
-        log.info("Stopping Jetty 9 WebSocketClient transport...");
+	log.info("Stopping Jetty 9 WebSocketClient transport...");
 
-        setStopping(true);
+	setStopping(true);
 
-        super.stop();
+	super.stop();
 
-        try {
-            webSocketClient.stop();
-        }
-        catch (Exception e) {
-            getStatusHandler().handleException(new TransportException("Could not stop Jetty 9 WebSocketFactory", e));
+	try {
+	    this.webSocketClient.stop();
+	} catch (Exception e) {
+	    getStatusHandler().handleException(new TransportException("Could not stop Jetty 9 WebSocketFactory", e));
 
-            log.error(e, "Jetty 9 WebSocketClient failed to stop properly.");
-        }
-        finally {
-            webSocketClient.destroy();
-            webSocketClient = null;
+	    log.error(e, "Jetty 9 WebSocketClient failed to stop properly.");
+	} finally {
+	    this.webSocketClient.destroy();
+	    this.webSocketClient = null;
 
-            setStopping(false);
-        }
+	    setStopping(false);
+	}
 
-        log.info("Jetty 9 WebSocketClient transport stopped.");
+	log.info("Jetty 9 WebSocketClient transport stopped.");
     }
 
     @Override
     protected TransportData<Session> newTransportData() {
-        return new Jetty9TransportData();
+	return new Jetty9TransportData();
     }
 
-	public static class Jetty9TransportData extends TransportData<Session> {
-		
-		private Session session = null;
+    public static class Jetty9TransportData extends TransportData<Session> {
 
-        @Override
-        public void connect(Session session) {
-            this.session = session;
-        }
+	private Session session = null;
 
-        @Override
-        public boolean isConnected() {
-            return session != null;
-        }
+	@Override
+	public void connect(Session session) {
+	    this.session = session;
+	}
 
-        @Override
-        public void disconnect() {
-            this.session = null;
-        }
+	@Override
+	public boolean isConnected() {
+	    return this.session != null;
+	}
 
-        @Override
-        public void sendBytes(byte[] data) throws IOException {
-            session.getRemote().sendBytes(ByteBuffer.wrap(data));
-        }
+	@Override
+	public void disconnect() {
+	    this.session = null;
+	}
+
+	@Override
+	public void sendBytes(byte[] data) throws IOException {
+	    this.session.getRemote().sendBytes(ByteBuffer.wrap(data));
+	}
     }
-
 
     private class WebSocketHandler implements WebSocketListener {
 
-        private final Channel channel;
+	private final Channel channel;
 
-        public WebSocketHandler(Channel channel) {
-            this.channel = channel;
-        }
+	public WebSocketHandler(Channel channel) {
+	    this.channel = channel;
+	}
 
-        @Override
-        public void onWebSocketConnect(Session session) {
-            onConnect(channel, session);
-        }
+	@Override
+	public void onWebSocketConnect(Session session) {
+	    onConnect(this.channel, session);
+	}
 
-        @Override
-        public void onWebSocketBinary(byte[] data, int offset, int length) {
-            onBinaryMessage(channel, data, offset, length);
-        }
+	@Override
+	public void onWebSocketBinary(byte[] data, int offset, int length) {
+	    onBinaryMessage(this.channel, data, offset, length);
+	}
 
-        @Override
-        public void onWebSocketClose(int closeCode, String message) {
-            onClose(channel, closeCode, message);
-        }
+	@Override
+	public void onWebSocketClose(int closeCode, String message) {
+	    onClose(this.channel, closeCode, message);
+	}
 
-        @Override
-        public void onWebSocketError(Throwable throwable) {
-            onError(channel, throwable);
-        }
+	@Override
+	public void onWebSocketError(Throwable throwable) {
+	    onError(this.channel, throwable);
+	}
 
-        @Override
-        public void onWebSocketText(String s) {
-            log.warn("Websocket text message not supported");
-        }
+	@Override
+	public void onWebSocketText(String s) {
+	    log.warn("Websocket text message not supported");
+	}
     }
 }

@@ -26,20 +26,20 @@ package org.granite.client.messaging.transport;
  */
 public class TransportStateException extends TransportException {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public TransportStateException() {
-	}
+    public TransportStateException() {
+    }
 
-	public TransportStateException(String message) {
-		super(message);
-	}
+    public TransportStateException(String message) {
+	super(message);
+    }
 
-	public TransportStateException(Throwable cause) {
-		super(cause);
-	}
+    public TransportStateException(Throwable cause) {
+	super(cause);
+    }
 
-	public TransportStateException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    public TransportStateException(String message, Throwable cause) {
+	super(message, cause);
+    }
 }

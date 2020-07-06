@@ -24,14 +24,15 @@ package org.granite.client.messaging.messages;
 /**
  * @author Franck WOLFF
  */
-public interface ResponseMessage extends Message, MessageChain<ResponseMessage> {
+public interface ResponseMessage extends MessageChain<ResponseMessage> {
 
-	String getCorrelationId();
-	void setCorrelationId(String correlationId);
-	
-	boolean isProcessed();
-	
-	ResponseMessage copy(String correlationId);
-	
-	Object getData();
+    String getCorrelationId();
+
+    void setCorrelationId(String correlationId);
+
+    boolean isProcessed();
+
+    ResponseMessage copy(String correlationId);
+
+    Object getData();
 }

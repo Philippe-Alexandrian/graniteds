@@ -36,31 +36,36 @@ public interface ResponseListener {
 
     /**
      * Callback when a request has been successfully processed
+     * 
      * @param event result event holding the result message
      */
-	void onResult(ResultEvent event);
+    void onResult(ResultEvent event);
 
     /**
      * Callback when a fault is received (usually server exceptions are received as faults)
+     * 
      * @param event fault event holding the remote error
      */
-	void onFault(FaultEvent event);
+    void onFault(FaultEvent event);
 
     /**
      * Callback when a failure occurs on the client side (network issue, serializable error...)
+     * 
      * @param event failure event holding the local exception
      */
-	void onFailure(FailureEvent event);
+    void onFailure(FailureEvent event);
 
     /**
      * Callback when a request times out
+     * 
      * @param event timeout event holding the local exception
      */
-	void onTimeout(TimeoutEvent event);
+    void onTimeout(TimeoutEvent event);
 
     /**
      * Callback when a request is cancelled
+     * 
      * @param event cancel event holding the local exception
      */
-	void onCancelled(CancelledEvent event);
+    void onCancelled(CancelledEvent event);
 }

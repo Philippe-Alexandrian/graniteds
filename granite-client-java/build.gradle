@@ -6,6 +6,10 @@ List<String> clientResourceExcludes = [
 
 description = 'GraniteDS Java client'
 
+eclipse {
+    project.natures 'org.eclipse.buildship.core.gradleprojectnature'
+}
+
 configurations {
 	create('testJetty8ClientRuntime')
 	create('testJetty9ClientRuntime')

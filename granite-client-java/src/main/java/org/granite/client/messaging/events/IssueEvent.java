@@ -32,7 +32,8 @@ public interface IssueEvent extends Event {
 
     /**
      * Request message
+     * 
      * @return request message
      */
-	RequestMessage getRequest();
+    RequestMessage getRequest();
 }

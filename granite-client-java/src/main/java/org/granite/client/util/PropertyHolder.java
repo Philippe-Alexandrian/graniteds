@@ -25,9 +25,9 @@ package org.granite.client.util;
  * @author William DRAI
  */
 public interface PropertyHolder {
-    
+
     public Object getObject();
-    
+
     public void setProperty(String propertyName, Object value);
 
 }

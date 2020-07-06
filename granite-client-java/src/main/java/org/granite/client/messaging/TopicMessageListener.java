@@ -24,8 +24,7 @@ package org.granite.client.messaging;
 import org.granite.client.messaging.events.TopicMessageEvent;
 
 /**
- * Callback interface for message listeners
- * Called when an incoming message is received
+ * Callback interface for message listeners Called when an incoming message is received
  *
  * @author Franck WOLFF
  */
@@ -33,7 +32,8 @@ public interface TopicMessageListener {
 
     /**
      * Callback method called when message is received
+     * 
      * @param event message event
      */
-	void onMessage(TopicMessageEvent event);
+    void onMessage(TopicMessageEvent event);
 }

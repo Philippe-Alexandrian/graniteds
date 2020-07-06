@@ -39,43 +39,41 @@ import org.granite.util.ContentType;
  */
 public class AMF0MessagingCodec implements MessagingCodec<AMF0Message> {
 
-	private final Configuration config;
-	
-	public AMF0MessagingCodec(Configuration config) {
-		this.config = config;
-	}
+    private final Configuration config;
 
-	@Override
-	public ClientType getClientType() {
-		return config.getClientType();
-	}
+    public AMF0MessagingCodec(Configuration config) {
+	this.config = config;
+    }
 
-	@Override
-	public String getContentType() {
-		return ContentType.AMF.mimeType();
-	}
+    @Override
+    public ClientType getClientType() {
+	return this.config.getClientType();
+    }
 
-	@Override
-	public void encode(AMF0Message message, OutputStream output) throws IOException {
-		SimpleGraniteContext.createThreadInstance(config.getGraniteConfig(), config.getServicesConfig(), new HashMap<String, Object>(0), getClientType().toString());
-		try {
-			AMF0Serializer serializer = new AMF0Serializer(output);
-			serializer.serializeMessage(message);
-		}
-		finally {
-			GraniteContext.release();
-		}
-	}
+    @Override
+    public String getContentType() {
+	return ContentType.AMF.mimeType();
+    }
 
-	@Override
-	public AMF0Message decode(InputStream input) throws IOException {
-		SimpleGraniteContext.createThreadInstance(config.getGraniteConfig(), config.getServicesConfig(), new HashMap<String, Object>(0), getClientType().toString());
-		try {
-			AMF0Deserializer deserializer = new AMF0Deserializer(input);
-			return deserializer.getAMFMessage();
-		}
-		finally {
-			GraniteContext.release();
-		}
+    @Override
+    public void encode(AMF0Message message, OutputStream output) throws IOException {
+	SimpleGraniteContext.createThreadInstance(this.config.getGraniteConfig(), this.config.getServicesConfig(), new HashMap<String, Object>(0), getClientType().toString());
+	try {
+	    AMF0Serializer serializer = new AMF0Serializer(output);
+	    serializer.serializeMessage(message);
+	} finally {
+	    GraniteContext.release();
 	}
+    }
+
+    @Override
+    public AMF0Message decode(InputStream input) throws IOException {
+	SimpleGraniteContext.createThreadInstance(this.config.getGraniteConfig(), this.config.getServicesConfig(), new HashMap<String, Object>(0), getClientType().toString());
+	try {
+	    AMF0Deserializer deserializer = new AMF0Deserializer(input);
+	    return deserializer.getAMFMessage();
+	} finally {
+	    GraniteContext.release();
+	}
+    }
 }

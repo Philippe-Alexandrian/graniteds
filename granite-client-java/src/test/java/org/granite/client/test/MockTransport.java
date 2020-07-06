@@ -30,8 +30,8 @@ import org.granite.client.messaging.transport.TransportStatusHandler;
 import org.granite.client.messaging.transport.TransportStopListener;
 
 /**
-* Created by william on 02/10/13.
-*/
+ * Created by william on 02/10/13.
+ */
 public class MockTransport implements Transport {
 
     @Override
@@ -40,32 +40,32 @@ public class MockTransport implements Transport {
 
     @Override
     public boolean isReconnectAfterReceive() {
-        return false;
+	return false;
     }
 
     @Override
     public boolean isDisconnectAfterAuthenticationFailure() {
-        return false;
+	return false;
     }
 
-	@Override
-	public boolean isAuthenticationAfterReconnectWithRemoting() {
-		return false;
-	}
+    @Override
+    public boolean isAuthenticationAfterReconnectWithRemoting() {
+	return false;
+    }
 
     @Override
     public Object getContext() {
-        return null;
+	return null;
     }
 
     @Override
     public boolean start() {
-        return true;
+	return true;
     }
 
     @Override
     public boolean isStarted() {
-        return false;
+	return false;
     }
 
     @Override
@@ -78,7 +78,7 @@ public class MockTransport implements Transport {
 
     @Override
     public TransportStatusHandler getStatusHandler() {
-        return null;
+	return null;
     }
 
     @Override
@@ -87,11 +87,11 @@ public class MockTransport implements Transport {
 
     @Override
     public boolean removeStopListener(TransportStopListener listener) {
-        return false;
+	return false;
     }
 
     @Override
     public TransportFuture send(Channel channel, TransportMessage message) throws TransportException {
-        return null;
+	return null;
     }
 }

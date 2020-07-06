@@ -27,5 +27,5 @@ package org.granite.client.messaging.channel;
  * @author Franck WOLFF
  */
 public interface Credentials {
-
+    // Empty.
 }

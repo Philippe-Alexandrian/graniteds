@@ -21,7 +21,8 @@
  */
 package org.granite.client.messaging.channel;
 
-import flex.messaging.messages.Message;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.granite.client.messaging.ServerApp;
 import org.granite.client.messaging.channel.amf.BaseAMFMessagingChannel;
@@ -30,15 +31,13 @@ import org.granite.client.messaging.transport.Transport;
 import org.granite.messaging.amf.AMF0Message;
 import org.granite.util.TypeUtil;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import flex.messaging.messages.Message;
 
 /**
- * Default implementation of ChannelBuilder handling the built-in channel types (long polling and websocket)
- * This can also be used to specify custom url mappings for the server channel uris:
+ * Default implementation of ChannelBuilder handling the built-in channel types (long polling and websocket) This can also be used to specify custom url mappings for the server
+ * channel uris:
  *
- * channelFactory.setChannelBuilder(new DefaultChannelBuilder("/customremoting/amf", "/customgravity/amf", "/customws/amf");
- * channelFactory.start();
+ * channelFactory.setChannelBuilder(new DefaultChannelBuilder("/customremoting/amf", "/customgravity/amf", "/customws/amf"); channelFactory.start();
  *
  * @author William DRAI
  */
@@ -56,82 +55,94 @@ public class DefaultChannelBuilder implements ChannelBuilder {
 
     /**
      * Create a channel builder with specified url mappings
+     * 
      * @param graniteUrlMapping url mapping for remoting
      * @param gravityUrlMapping url mapping for long polling
      * @param websocketUrlMapping url mapping for websocket
      */
     public DefaultChannelBuilder(String graniteUrlMapping, String gravityUrlMapping, String websocketUrlMapping) {
-        this.graniteUrlMapping = graniteUrlMapping;
-        this.gravityUrlMapping = gravityUrlMapping;
-        this.websocketUrlMapping = websocketUrlMapping;
+	this.graniteUrlMapping = graniteUrlMapping;
+	this.gravityUrlMapping = gravityUrlMapping;
+	this.websocketUrlMapping = websocketUrlMapping;
     }
 
     /**
      * Set url mapping for remoting
+     * 
      * @param graniteUrlMapping url mapping
      */
     public void setGraniteUrlMapping(String graniteUrlMapping) {
-        this.graniteUrlMapping = graniteUrlMapping;
+	this.graniteUrlMapping = graniteUrlMapping;
     }
 
     /**
      * Set url mapping for long polling
+     * 
      * @param gravityUrlMapping url mapping
      */
     public void setGravityUrlMapping(String gravityUrlMapping) {
-        this.gravityUrlMapping = gravityUrlMapping;
+	this.gravityUrlMapping = gravityUrlMapping;
     }
 
     /**
      * Set url mapping for websocket
+     * 
      * @param websocketUrlMapping url mapping
      */
     public void setWebsocketUrlMapping(String websocketUrlMapping) {
-        this.websocketUrlMapping = websocketUrlMapping;
+	this.websocketUrlMapping = websocketUrlMapping;
     }
 
-    public RemotingChannel buildRemotingChannel(Class<? extends RemotingChannel> channelClass, String id, URI uri, int maxConcurrentRequests, Transport transport, MessagingCodec<AMF0Message> codec) {
-        try {
-            return TypeUtil.newInstance(channelClass, new Class<?>[] { Transport.class, MessagingCodec.class, String.class, URI.class, int.class },
-                    new Object[] { transport, codec, id, uri, maxConcurrentRequests });
-        }
-        catch (Exception e) {
-            throw new RuntimeException("Could not build remoting channel for class " + channelClass, e);
-        }
+    @Override
+    public RemotingChannel buildRemotingChannel(Class<? extends RemotingChannel> channelClass, String id, URI uri, int maxConcurrentRequests, Transport transport,
+	    MessagingCodec<AMF0Message> codec) {
+	try {
+	    return TypeUtil.newInstance(channelClass, new Class<?>[] { Transport.class, MessagingCodec.class, String.class, URI.class, int.class },
+		    new Object[] { transport, codec, id, uri, maxConcurrentRequests });
+	} catch (Exception e) {
+	    throw new RuntimeException("Could not build remoting channel for class " + channelClass, e);
+	}
     }
 
-    public RemotingChannel buildRemotingChannel(Class<? extends RemotingChannel> channelClass, String id, ServerApp serverApp, int maxConcurrentRequest, Transport transport, MessagingCodec<AMF0Message> codec) {
-        String uri = (serverApp.getSecure() ? "https" : "http") + "://" + serverApp.getServerName() + ":" + serverApp.getServerPort() + serverApp.getContextRoot() + graniteUrlMapping;
+    @Override
+    public RemotingChannel buildRemotingChannel(Class<? extends RemotingChannel> channelClass, String id, ServerApp serverApp, int maxConcurrentRequest, Transport transport,
+	    MessagingCodec<AMF0Message> codec) {
+	String uri = (serverApp.getSecure() ? "https" : "http") + "://" + serverApp.getServerName() + ":" + serverApp.getServerPort() + serverApp.getContextRoot()
+		+ this.graniteUrlMapping;
 
-        try {
-            return buildRemotingChannel(channelClass, id, new URI(uri), maxConcurrentRequest, transport, codec);
-        }
-        catch (URISyntaxException e) {
-            throw new RuntimeException("Bad uri: " + uri, e);
-        }
+	try {
+	    return buildRemotingChannel(channelClass, id, new URI(uri), maxConcurrentRequest, transport, codec);
+	} catch (URISyntaxException e) {
+	    throw new RuntimeException("Bad uri: " + uri, e);
+	}
     }
 
-	public MessagingChannel buildMessagingChannel(String channelType, String id, URI uri, Transport transport, MessagingCodec<Message[]> codec) {
-        if (!(channelType.startsWith(ChannelType.LONG_POLLING) || channelType.startsWith(ChannelType.WEBSOCKET)))
-            return null;
-        
-        return new BaseAMFMessagingChannel(codec, transport, id, uri);
+    @Override
+    public MessagingChannel buildMessagingChannel(String channelType, String id, URI uri, Transport transport, MessagingCodec<Message[]> codec) {
+	if (!(channelType.startsWith(ChannelType.LONG_POLLING) || channelType.startsWith(ChannelType.WEBSOCKET))) {
+	    return null;
+	}
+
+	return new BaseAMFMessagingChannel(codec, transport, id, uri);
     }
 
+    @Override
     public MessagingChannel buildMessagingChannel(String channelType, String id, ServerApp serverApp, Transport transport, MessagingCodec<Message[]> codec) {
-        String uri;
-        if (channelType.startsWith(ChannelType.LONG_POLLING))
-            uri = (serverApp.getSecure() ? "https" : "http") + "://" + serverApp.getServerName() + ":" + serverApp.getServerPort() + serverApp.getContextRoot() + gravityUrlMapping;
-        else if (channelType.startsWith(ChannelType.WEBSOCKET))
-            uri = (serverApp.getSecure() ? "wss" : "ws") + "://" + serverApp.getServerName() + ":" + serverApp.getServerPort() + serverApp.getContextRoot() + websocketUrlMapping;
-        else
-            return null;
+	String uri;
+	if (channelType.startsWith(ChannelType.LONG_POLLING)) {
+	    uri = (serverApp.getSecure() ? "https" : "http") + "://" + serverApp.getServerName() + ":" + serverApp.getServerPort() + serverApp.getContextRoot()
+		    + this.gravityUrlMapping;
+	} else if (channelType.startsWith(ChannelType.WEBSOCKET)) {
+	    uri = (serverApp.getSecure() ? "wss" : "ws") + "://" + serverApp.getServerName() + ":" + serverApp.getServerPort() + serverApp.getContextRoot()
+		    + this.websocketUrlMapping;
+	} else {
+	    return null;
+	}
 
-        try {
-            return buildMessagingChannel(channelType, id, new URI(uri), transport, codec);
-        }
-        catch (URISyntaxException e) {
-            throw new RuntimeException("Bad uri: " + uri, e);
-        }
+	try {
+	    return buildMessagingChannel(channelType, id, new URI(uri), transport, codec);
+	} catch (URISyntaxException e) {
+	    throw new RuntimeException("Bad uri: " + uri, e);
+	}
     }
 }

@@ -31,67 +31,60 @@ import org.granite.client.messaging.messages.Message;
 public final class SubscribeMessage extends AbstractTopicRequestMessage {
 
     private static final long serialVersionUID = 1L;
-	
-	private String selector = null;
-	private String subscriptionId = null;
-	
-	public SubscribeMessage() {
-	}
 
-	public SubscribeMessage(String destination, String topic, String selector) {
-		this(null, destination, topic, selector);
-	}
+    private String selector = null;
+    private String subscriptionId = null;
 
-	public SubscribeMessage(String clientId, String destination, String topic, String selector) {
-		super(clientId, destination, topic);
-		
-		this.selector = selector;
-	}
+    public SubscribeMessage() {
+    }
 
-	public SubscribeMessage(
-		String id,
-		String clientId,
-		long timestamp,
-		long timeToLive,
-		Map<String, Object> headers,
-		String destination, String topic,
-		String selector) {
-		
-		super(id, clientId, timestamp, timeToLive, headers, destination, topic);
-		
-		this.selector = selector;
-	}
+    public SubscribeMessage(String destination, String topic, String selector) {
+	this(null, destination, topic, selector);
+    }
 
-	public String getSelector() {
-		return selector;
-	}
+    public SubscribeMessage(String clientId, String destination, String topic, String selector) {
+	super(clientId, destination, topic);
 
-	public void setSelector(String selector) {
-		this.selector = selector;
-	}
-	
-	public String getSubscriptionId() {
-		return subscriptionId;
-	}
-	
-	public void setSubscriptionId(String subscriptionId) {
-		this.subscriptionId = subscriptionId;
-	}
+	this.selector = selector;
+    }
 
-	@Override
-	public Type getType() {
-		return Type.SUBSCRIBE;
-	}
+    public SubscribeMessage(String id, String clientId, long timestamp, long timeToLive, Map<String, Object> headers, String destination, String topic, String selector) {
 
-	@Override
-	public Message copy() {
-		SubscribeMessage message = new SubscribeMessage();
-		
-		copy(message);
-		
-		message.selector = selector;
-		message.subscriptionId = subscriptionId;
-		
-		return message;
-	}
+	super(id, clientId, timestamp, timeToLive, headers, destination, topic);
+
+	this.selector = selector;
+    }
+
+    public String getSelector() {
+	return this.selector;
+    }
+
+    public void setSelector(String selector) {
+	this.selector = selector;
+    }
+
+    public String getSubscriptionId() {
+	return this.subscriptionId;
+    }
+
+    public void setSubscriptionId(String subscriptionId) {
+	this.subscriptionId = subscriptionId;
+    }
+
+    @Override
+    public Type getType() {
+	return Type.SUBSCRIBE;
+    }
+
+    @Override
+    public Message copy() {
+	SubscribeMessage message = new SubscribeMessage();
+
+	copy(message);
+
+	message.selector = this.selector;
+	message.subscriptionId = this.subscriptionId;
+
+	return message;
+    }
 }

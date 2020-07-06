@@ -28,40 +28,41 @@ import org.granite.client.persistence.Uid;
 
 public abstract class AbstractEntity extends Versioned {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@SuppressWarnings("unused")
-	private boolean __initialized__ = true;
-	@SuppressWarnings("unused")
-	private String __detachedState__ = null;
-	
-	@Id
-	private Integer id;
-	@Uid
-	private String uid;
+    @SuppressWarnings("unused")
+    private boolean __initialized__ = true;
+    @SuppressWarnings("unused")
+    private String __detachedState__ = null;
+
+    @Id
+    private Integer id;
+    @Uid
+    private String uid;
     private boolean restricted;
 
-	public Integer getId() {
-        return id;
+    public Integer getId() {
+	return this.id;
     }
-    
+
     public boolean isRestricted() {
-    	return restricted;
+	return this.restricted;
     }
 
     @Override
     public boolean equals(Object o) {
-        return (o == this || (o instanceof AbstractEntity && uid().equals(((AbstractEntity)o).uid())));
+	return ((o == this) || ((o instanceof AbstractEntity) && uid().equals(((AbstractEntity) o).uid())));
     }
 
     @Override
     public int hashCode() {
-        return uid().hashCode();
+	return uid().hashCode();
     }
 
     private String uid() {
-        if (uid == null)
-            uid = UUID.randomUUID().toString();
-        return uid;
+	if (this.uid == null) {
+	    this.uid = UUID.randomUUID().toString();
+	}
+	return this.uid;
     }
 }

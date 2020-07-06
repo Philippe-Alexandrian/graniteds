@@ -25,7 +25,7 @@ import org.junit.Test;
 
 public class TestChannelFactory {
 
-	@Test
-	public void testStandardFactory() {
-	}
+    @Test
+    public void testStandardFactory() {
+    }
 }

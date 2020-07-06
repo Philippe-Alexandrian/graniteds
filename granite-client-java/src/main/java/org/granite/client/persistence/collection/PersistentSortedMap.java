@@ -35,92 +35,105 @@ import org.granite.messaging.persistence.PersistentCollectionSnapshot;
 public class PersistentSortedMap<K, V> extends AbstractPersistentMapCollection<K, V, SortedMap<K, V>> implements SortedMap<K, V>, PersistentSortedCollection<SortedMap<K, V>, K> {
 
     private static final long serialVersionUID = 1L;
-	
-	public PersistentSortedMap() {
-	}
 
-	public PersistentSortedMap(boolean initialized) {
-		this(initialized ? new TreeMap<K, V>() : null, false);
-	}
+    public PersistentSortedMap() {
+    }
 
-	public PersistentSortedMap(SortedMap<K, V> collection) {		
-		this(collection, true);
-	}
+    public PersistentSortedMap(boolean initialized) {
+	this(initialized ? new TreeMap<K, V>() : null, false);
+    }
 
-	public PersistentSortedMap(SortedMap<K, V> collection, boolean clone) {	
-		if (collection != null)
-			init(clone ? new TreeMap<K, V>(collection) : collection, null, false);
-	}
-	
-	@Override
-	public void doInitialize(SortedMap<K, V> sortedMap, boolean empty) {
-		init(empty ? new TreeMap<K, V>(sortedMap.comparator()) : sortedMap, null, false);
-	}
-	
-	public Comparator<? super K> comparator() {
-		return getCollection().comparator();
-	}
+    public PersistentSortedMap(SortedMap<K, V> collection) {
+	this(collection, true);
+    }
 
-	public SortedMap<K, V> subMap(K fromKey, K toKey) {
-		if (!checkInitializedRead())
-			return null;
-		return new SortedMapProxy<K, V>(getCollection().subMap(fromKey, toKey));
+    public PersistentSortedMap(SortedMap<K, V> collection, boolean clone) {
+	if (collection != null) {
+	    init(clone ? new TreeMap<>(collection) : collection, null, false);
 	}
+    }
 
-	public SortedMap<K, V> headMap(K toKey) {
-		if (!checkInitializedRead())
-			return null;
-		return new SortedMapProxy<K, V>(getCollection().headMap(toKey));
-	}
+    @Override
+    public void doInitialize(SortedMap<K, V> sortedMap, boolean empty) {
+	init(empty ? new TreeMap<K, V>(sortedMap.comparator()) : sortedMap, null, false);
+    }
 
-	public SortedMap<K, V> tailMap(K fromKey) {
-		if (!checkInitializedRead())
-			return null;
-		return new SortedMapProxy<K, V>(getCollection().tailMap(fromKey));
-	}
+    @Override
+    public Comparator<? super K> comparator() {
+	return getCollection().comparator();
+    }
 
-	public K firstKey() {
-		if (!checkInitializedRead())
-			return null;
-		return getCollection().firstKey();
+    @Override
+    public SortedMap<K, V> subMap(K fromKey, K toKey) {
+	if (!checkInitializedRead()) {
+	    return null;
 	}
+	return new SortedMapProxy<>(getCollection().subMap(fromKey, toKey));
+    }
 
-	public K lastKey() {
-		checkInitializedRead();
-		return getCollection().lastKey();
+    @Override
+    public SortedMap<K, V> headMap(K toKey) {
+	if (!checkInitializedRead()) {
+	    return null;
 	}
+	return new SortedMapProxy<>(getCollection().headMap(toKey));
+    }
 
-	@Override
-	protected PersistentCollectionSnapshot createSnapshot(Object io, boolean forReading) {
-		PersistentCollectionSnapshotFactory factory = PersistentCollectionSnapshotFactory.newInstance(io);
-		if (forReading || !wasInitialized())
-			return factory.newPersistentCollectionSnapshot(true, getDetachedState());
-		return factory.newPersistentCollectionSnapshot(true, getDetachedState(), isDirty(), this);
+    @Override
+    public SortedMap<K, V> tailMap(K fromKey) {
+	if (!checkInitializedRead()) {
+	    return null;
 	}
+	return new SortedMapProxy<>(getCollection().tailMap(fromKey));
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	protected void updateFromSnapshot(ObjectInput in, PersistentCollectionSnapshot snapshot) {
-		if (snapshot.isInitialized()) {
-			Comparator<? super K> comparator = null;
-			try {
-				comparator = snapshot.newComparator(in);
-			}
-			catch (Exception e) {
-				throw new RuntimeException("Could not create instance of comparator", e);
-			}
-			SortedMap<K, V> map = new TreeMap<K, V>(comparator);
-			map.putAll((Map<K, V>)snapshot.getElementsAsMap());
-			init(map, snapshot.getDetachedState(), snapshot.isDirty());
-		}
-		else
-			init(null, snapshot.getDetachedState(), false);
+    @Override
+    public K firstKey() {
+	if (!checkInitializedRead()) {
+	    return null;
 	}
-	
+	return getCollection().firstKey();
+    }
+
+    @Override
+    public K lastKey() {
+	checkInitializedRead();
+	return getCollection().lastKey();
+    }
+
+    @Override
+    protected PersistentCollectionSnapshot createSnapshot(Object io, boolean forReading) {
+	PersistentCollectionSnapshotFactory factory = PersistentCollectionSnapshotFactory.newInstance(io);
+	if (forReading || !wasInitialized()) {
+	    return factory.newPersistentCollectionSnapshot(true, getDetachedState());
+	}
+	return factory.newPersistentCollectionSnapshot(true, getDetachedState(), isDirty(), this);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected void updateFromSnapshot(ObjectInput in, PersistentCollectionSnapshot snapshot) {
+	if (snapshot.isInitialized()) {
+	    Comparator<? super K> comparator = null;
+	    try {
+		comparator = snapshot.newComparator(in);
+	    } catch (Exception e) {
+		throw new RuntimeException("Could not create instance of comparator", e);
+	    }
+	    SortedMap<K, V> map = new TreeMap<>(comparator);
+	    map.putAll((Map<K, V>) snapshot.getElementsAsMap());
+	    init(map, snapshot.getDetachedState(), snapshot.isDirty());
+	} else {
+	    init(null, snapshot.getDetachedState(), false);
+	}
+    }
+
+    @Override
     public PersistentSortedMap<K, V> clone(boolean uninitialize) {
-    	PersistentSortedMap<K, V> map = new PersistentSortedMap<K, V>();
-    	if (wasInitialized() && !uninitialize)
-    		map.init(getCollection(), null, isDirty());
-        return map;
+	PersistentSortedMap<K, V> map = new PersistentSortedMap<>();
+	if (wasInitialized() && !uninitialize) {
+	    map.init(getCollection(), null, isDirty());
+	}
+	return map;
     }
 }

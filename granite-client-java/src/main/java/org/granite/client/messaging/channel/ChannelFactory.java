@@ -31,18 +31,19 @@ import org.granite.messaging.AliasRegistry;
 import org.granite.util.ContentType;
 
 /**
- * ChannelFactory is the main entry point for using the low-level GraniteDS remoting and messaging API.
- * It can be used to create new channels and attach them to the underlying transports {@link Transport}.
+ * ChannelFactory is the main entry point for using the low-level GraniteDS remoting and messaging API. It can be used to create new channels and attach them to the underlying
+ * transports {@link Transport}.
  *
  * The usual way of using ChannelFactory is as follows:
  *
  * <pre>
- * {@code
- * ChannelFactory channelFactory = new JMFChannelFactory();
- * channelFactory.start();
- * RemotingChannel remotingCannel = channelFactory.newRemotingChannel("remoting", "http://localhost:8080/myapp/graniteamf/amf.txt");
- * MessagingChannel messagingChannel = channelFactory.newMessagingChannel("messaging", "http://localhost:8080/myapp/gravityamf/amf.txt");
- * MessagingChannel websocketChannel = channelFactory.newMessagingChannel(ChannelType.WEBSOCKET, "websocket", "ws://localhost:8080/myapp/websocketamf/amf");
+ * {
+ *     &#64;code
+ *     ChannelFactory channelFactory = new JMFChannelFactory();
+ *     channelFactory.start();
+ *     RemotingChannel remotingCannel = channelFactory.newRemotingChannel("remoting", "http://localhost:8080/myapp/graniteamf/amf.txt");
+ *     MessagingChannel messagingChannel = channelFactory.newMessagingChannel("messaging", "http://localhost:8080/myapp/gravityamf/amf.txt");
+ *     MessagingChannel websocketChannel = channelFactory.newMessagingChannel(ChannelType.WEBSOCKET, "websocket", "ws://localhost:8080/myapp/websocketamf/amf");
  * }
  * </pre>
  *
@@ -52,45 +53,52 @@ public interface ChannelFactory {
 
     /**
      * The encoding (AMF or JMF) for this ChannelFactory
+     * 
      * @return the content type
      * @see org.granite.util.ContentType
      */
-	ContentType getContentType();
+    ContentType getContentType();
 
     /**
      * The default time to live defined for channels created by this factory
+     * 
      * @return time to live in milliseconds
      */
-	long getDefaultTimeToLive();
+    long getDefaultTimeToLive();
 
     /**
      * Set the default time to live for the channels created by this factory
+     * 
      * @param defaultTimeToLive time to live in milliseconds
      */
-	void setDefaultTimeToLive(long defaultTimeToLive);
-	
-	/**
-	 * Default max reconnect attempts for messaging channels
-	 * @param maxReconnectAttempts
-	 */
-	void setDefaultMaxReconnectAttempts(long maxReconnectAttempts);
+    void setDefaultTimeToLive(long defaultTimeToLive);
+
+    /**
+     * Default max reconnect attempts for messaging channels
+     * 
+     * @param maxReconnectAttempts
+     */
+    void setDefaultMaxReconnectAttempts(long maxReconnectAttempts);
 
     /**
      * A generic context object used to create transports (actual type of the context depends on the {@link org.granite.client.platform.Platform})
+     * 
      * @return current context
      * @see org.granite.client.messaging.transport.Transport
      */
-	Object getContext();
+    Object getContext();
 
     /**
      * Set the current context used to create transports (actual type of this context depends on the {@link org.granite.client.platform.Platform})
+     * 
      * @param context current context
      * @see org.granite.client.messaging.transport.Transport
      */
-	void setContext(Object context);
+    void setContext(Object context);
 
     /**
      * Set the default type of messaging channels (initially ChannelType.LONG_POLLING)
+     * 
      * @param channelType default type of messaging channels
      * @see org.granite.client.messaging.channel.ChannelType
      */
@@ -98,13 +106,14 @@ public interface ChannelFactory {
 
     /**
      * Return the default type of messaging channels (initially ChannelType.LONG_POLLING)
+     * 
      * @return default type of messaging channels
      */
     String getDefaultChannelType();
 
     /**
-     * Set the default builder for channels
-     * A custom channel builder can also be defined to change the default url mappings of the remoting and messaging channels
+     * Set the default builder for channels A custom channel builder can also be defined to change the default url mappings of the remoting and messaging channels
+     * 
      * @param channelBuilder the channel builder
      * @see org.granite.client.messaging.channel.DefaultChannelBuilder
      */
@@ -112,26 +121,30 @@ public interface ChannelFactory {
 
     /**
      * The transport for remoting channels
+     * 
      * @return transport
      * @see org.granite.client.messaging.transport.Transport
      */
-	Transport getRemotingTransport();
+    Transport getRemotingTransport();
 
     /**
      * Set the transport for remoting channels
+     * 
      * @param remotingTransport transport
      * @see org.granite.client.messaging.transport.Transport
      */
-	void setRemotingTransport(Transport remotingTransport);
+    void setRemotingTransport(Transport remotingTransport);
 
     /**
      * Set the default transport for messaging channels
+     * 
      * @param messagingTransport transport
      */
     void setMessagingTransport(Transport messagingTransport);
 
     /**
      * Set the transport for the specified messaging channel type
+     * 
      * @param channelType channel type
      * @param messagingTransport transport
      * @see org.granite.client.messaging.channel.ChannelType
@@ -141,93 +154,98 @@ public interface ChannelFactory {
 
     /**
      * The default transport for messaging channels
+     * 
      * @return the transport
      * @see org.granite.client.messaging.transport.Transport
      */
     Transport getMessagingTransport();
-    
+
     /**
      * The transports for messaging channels
+     * 
      * @return a map of transports keyed by channel type
      */
     Map<String, Transport> getMessagingTransports();
 
     /**
      * The transport for the specified messaging channel type
+     * 
      * @param channelType channel type
      * @return the transport
      * @see org.granite.client.messaging.channel.ChannelType
      * @see org.granite.client.messaging.transport.Transport
      */
-	Transport getMessagingTransport(String channelType);
+    Transport getMessagingTransport(String channelType);
 
     /**
      * The alias registry for this factory
+     * 
      * @param aliasRegistry alias registry
      * @see org.granite.messaging.AliasRegistry
      */
     void setAliasRegistry(AliasRegistry aliasRegistry);
 
     /**
-     * Set of package names to scan
-     * The classes of these packages will be scanned during the start of this factory to find aliased classes
+     * Set of package names to scan The classes of these packages will be scanned during the start of this factory to find aliased classes
+     * 
      * @param packageNames
      * @see org.granite.messaging.AliasRegistry
      */
-	void setScanPackageNames(Set<String> packageNames);
+    void setScanPackageNames(Set<String> packageNames);
 
     /**
-     * Start this ChannelFactory
-     * Must be called before trying to create channels and after all properties have been set.
+     * Start this ChannelFactory Must be called before trying to create channels and after all properties have been set.
      */
-	void start();
+    void start();
 
     /**
-     * Stop this ChannelFactory
-     * All defined transports are also stopped and unregistered. After stop, it is recommended to create a new ChannelFactory
-     * instead of restarting an existing one.
+     * Stop this ChannelFactory All defined transports are also stopped and unregistered. After stop, it is recommended to create a new ChannelFactory instead of restarting an
+     * existing one.
      */
-	void stop();
+    void stop();
 
     /**
-     * Stop this ChannelFactory
-     * Optionally when stopTransports is true all defined transports are also stopped and unregistered.
-     * If the transportshe ChannelFactory should not be restarted after stop,
-     * a new ChannelFactory should be created.
+     * Stop this ChannelFactory Optionally when stopTransports is true all defined transports are also stopped and unregistered. If the transportshe ChannelFactory should not be
+     * restarted after stop, a new ChannelFactory should be created.
+     * 
      * @param stopTransports true to stop associated transports
      */
-	void stop(boolean stopTransports);
+    void stop(boolean stopTransports);
 
     /**
      * Create a remoting channel using the specified uri
+     * 
      * @param id identifier for this channel
      * @param uri uri of the server to connect to
      * @return a new initialized messaging channel
      * @see org.granite.client.messaging.channel.RemotingChannel
      */
-	RemotingChannel newRemotingChannel(String id, String uri);
+    RemotingChannel newRemotingChannel(String id, String uri);
 
     /**
      * Create a remoting channel using the specified uri
+     * 
      * @param id identifier for this channel
      * @param uri uri of the server to connect to
      * @param maxConcurrentRequests maximum number of concurrent requests
      * @return an initializer channel
      * @see org.granite.client.messaging.channel.RemotingChannel
      */
-	RemotingChannel newRemotingChannel(String id, String uri, int maxConcurrentRequests);
+    RemotingChannel newRemotingChannel(String id, String uri, int maxConcurrentRequests);
 
     /**
      * Create a messaging channel of the default type using the specified uri
+     * 
      * @param id identifier for this channel
      * @param uri uri of the server to connect to
      * @return an initializer channel
      * @see org.granite.client.messaging.channel.MessagingChannel
      */
-	MessagingChannel newMessagingChannel(String id, String uri);
+    MessagingChannel newMessagingChannel(String id, String uri);
 
     /**
      * Create a messaging channel of the specified type using the specified uri
+     * 
      * @param channelType a channel type
      * @param id identifier for this channel
      * @param uri uri of the server to connect to
@@ -235,38 +253,42 @@ public interface ChannelFactory {
      * @see org.granite.client.messaging.channel.ChannelType
      * @see org.granite.client.messaging.channel.MessagingChannel
      */
-	MessagingChannel newMessagingChannel(String channelType, String id, String uri);
+    MessagingChannel newMessagingChannel(String channelType, String id, String uri);
 
     /**
      * Create a remoting channel using the specified {@link URI}
+     * 
      * @param id identifier for this channel
      * @param uri uri of the server to connect to
      * @return a new initialized messaging channel
      * @see org.granite.client.messaging.channel.RemotingChannel
      */
-	RemotingChannel newRemotingChannel(String id, URI uri);
+    RemotingChannel newRemotingChannel(String id, URI uri);
 
     /**
      * Create a remoting channel using the specified {@link URI}
+     * 
      * @param id identifier for this channel
      * @param uri uri of the server to connect to
      * @param maxConcurrentRequests maximum number of concurrent requests
      * @return an initializer channel
      * @see org.granite.client.messaging.channel.RemotingChannel
      */
-	RemotingChannel newRemotingChannel(String id, URI uri, int maxConcurrentRequests);
+    RemotingChannel newRemotingChannel(String id, URI uri, int maxConcurrentRequests);
 
     /**
      * Create a messaging channel of the default type using the specified {@link URI}
+     * 
      * @param id identifier for this channel
      * @param uri uri of the server to connect to
      * @return a new initialized messaging channel
      * @see org.granite.client.messaging.channel.MessagingChannel
      */
-	MessagingChannel newMessagingChannel(String id, URI uri);
+    MessagingChannel newMessagingChannel(String id, URI uri);
 
     /**
      * Create a messaging channel of the specified type using the specified {@link URI}
+     * 
      * @param channelType a channel type
      * @param id identifier for this channel
      * @param uri uri of the server to connect to
@@ -274,10 +296,11 @@ public interface ChannelFactory {
      * @see org.granite.client.messaging.channel.ChannelType
      * @see org.granite.client.messaging.channel.MessagingChannel
      */
-	MessagingChannel newMessagingChannel(String channelType, String id, URI uri);
+    MessagingChannel newMessagingChannel(String channelType, String id, URI uri);
 
     /**
      * Create a remoting channel using the specified server application definition
+     * 
      * @param id identifier for this channel
      * @param serverApp server application to connect to
      * @return an initializer channel
@@ -288,6 +311,7 @@ public interface ChannelFactory {
 
     /**
      * Create a remoting channel using the specified server application definition
+     * 
      * @param id identifier for this channel
      * @param serverApp server application to connect to
      * @param maxConcurrentRequests maximum number of concurrent requests
@@ -299,6 +323,7 @@ public interface ChannelFactory {
 
     /**
      * Create a messaging channel of the default type using the specified server application definition
+     * 
      * @param id identifier for this channel
      * @param serverApp server application to connect to
      * @return a new initialized messaging channel
@@ -309,6 +334,7 @@ public interface ChannelFactory {
 
     /**
      * Create a messaging channel of the specified type using the specified server application definition
+     * 
      * @param channelType a channel type
      * @param id identifier for this channel
      * @param serverApp server application to connect to

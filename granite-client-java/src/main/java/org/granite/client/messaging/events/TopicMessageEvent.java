@@ -29,42 +29,42 @@ import org.granite.client.messaging.messages.push.TopicMessage;
  */
 public class TopicMessageEvent implements IncomingMessageEvent<TopicMessage> {
 
-	private final Consumer consumer;
-	private final TopicMessage message;
-	
-	public TopicMessageEvent(Consumer consumer, TopicMessage message) {
-		this.consumer = consumer;
-		this.message = message;
-	}
+    private final Consumer consumer;
+    private final TopicMessage message;
 
-	@Override
-	public Type getType() {
-		return Type.TOPIC;
-	}
+    public TopicMessageEvent(Consumer consumer, TopicMessage message) {
+	this.consumer = consumer;
+	this.message = message;
+    }
 
-	@Override
-	public TopicMessage getMessage() {
-		return message;
-	}
-	
-	public Object getData() {
-		return message.getData();
-	}
+    @Override
+    public Type getType() {
+	return Type.TOPIC;
+    }
 
-	public Consumer getConsumer() {
-		return consumer;
-	}
-	
-	public String getTopic() {
-		return consumer.getTopic();
-	}
+    @Override
+    public TopicMessage getMessage() {
+	return this.message;
+    }
+
+    public Object getData() {
+	return this.message.getData();
+    }
+
+    public Consumer getConsumer() {
+	return this.consumer;
+    }
+
+    public String getTopic() {
+	return this.consumer.getTopic();
+    }
 
     public void reply(Object reply) {
-        consumer.reply(message, reply);
+	this.consumer.reply(this.message, reply);
     }
-    
+
     @Override
     public String toString() {
-    	return message.toString();
+	return this.message.toString();
     }
 }

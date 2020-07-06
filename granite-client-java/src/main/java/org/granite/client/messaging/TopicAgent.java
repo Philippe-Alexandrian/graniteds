@@ -34,25 +34,29 @@ public interface TopicAgent {
 
     /**
      * Messaging channel to which the agent is attached
+     * 
      * @return message channel
      */
-	MessagingChannel getChannel();
+    MessagingChannel getChannel();
 
     /**
      * Name of the remote destination for the topic
+     * 
      * @return destination
      */
-	String getDestination();
+    String getDestination();
 
     /**
      * Subtopic for the remote topic
+     * 
      * @return topic
      */
-	String getTopic();
+    String getTopic();
 
     /**
      * Default headers added to all messages sent by this agent
+     * 
      * @return headers map
      */
-	Map<String, Object> getDefaultHeaders();
+    Map<String, Object> getDefaultHeaders();
 }

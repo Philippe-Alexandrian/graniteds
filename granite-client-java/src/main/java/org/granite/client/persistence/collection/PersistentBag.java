@@ -29,19 +29,19 @@ import java.util.List;
 public class PersistentBag<E> extends PersistentList<E> {
 
     private static final long serialVersionUID = 1L;
-	
-	public PersistentBag() {
-	}
 
-	public PersistentBag(boolean initialized) {
-		super(initialized);
-	}
+    public PersistentBag() {
+    }
 
-	public PersistentBag(List<E> collection) {
-		super(collection);
-	}
+    public PersistentBag(boolean initialized) {
+	super(initialized);
+    }
 
-	public PersistentBag(List<E> collection, boolean clone) {
-		super(collection, clone);
-	}
+    public PersistentBag(List<E> collection) {
+	super(collection);
+    }
+
+    public PersistentBag(List<E> collection, boolean clone) {
+	super(collection, clone);
+    }
 }

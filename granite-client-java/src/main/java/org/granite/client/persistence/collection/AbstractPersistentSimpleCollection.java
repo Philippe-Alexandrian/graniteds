@@ -31,111 +31,132 @@ import org.granite.messaging.persistence.PersistentCollectionSnapshot;
  */
 public abstract class AbstractPersistentSimpleCollection<E, C extends Collection<E>> extends AbstractPersistentCollection<C> implements Collection<E> {
 
-	private static final long serialVersionUID = 1L;
-	
-	public AbstractPersistentSimpleCollection() {
-	}
+    private static final long serialVersionUID = 1L;
 
-	public int size() {
-		if (!checkInitializedRead())
-			return 0;
-		return getCollection().size();
-	}
+    public AbstractPersistentSimpleCollection() {
+    }
 
-	public boolean isEmpty() {
-		if (!checkInitializedRead())
-			return true;
-		return getCollection().isEmpty();
+    @Override
+    public int size() {
+	if (!checkInitializedRead()) {
+	    return 0;
 	}
+	return getCollection().size();
+    }
 
-	public boolean contains(Object o) {
-		if (!checkInitializedRead())
-			return false;
-		return getCollection().contains(o);
+    @Override
+    public boolean isEmpty() {
+	if (!checkInitializedRead()) {
+	    return true;
 	}
+	return getCollection().isEmpty();
+    }
 
-	public Iterator<E> iterator() {
-		if (!checkInitializedRead())
-			return null;
-		return new IteratorProxy<E>(getCollection().iterator());
+    @Override
+    public boolean contains(Object o) {
+	if (!checkInitializedRead()) {
+	    return false;
 	}
+	return getCollection().contains(o);
+    }
 
-	public Object[] toArray() {
-		if (!checkInitializedRead())
-			return null;
-		return getCollection().toArray();
+    @Override
+    public Iterator<E> iterator() {
+	if (!checkInitializedRead()) {
+	    return null;
 	}
+	return new IteratorProxy<>(getCollection().iterator());
+    }
 
-	public <T> T[] toArray(T[] a) {
-		if (!checkInitializedRead())
-			return null;
-		return getCollection().toArray(a);
+    @Override
+    public Object[] toArray() {
+	if (!checkInitializedRead()) {
+	    return null;
 	}
+	return getCollection().toArray();
+    }
 
-	public boolean add(E e) {
-		checkInitializedWrite();
-		if (getCollection().add(e)) {
-			dirty();
-			return true;
-		}
-		return false;
+    @Override
+    public <T> T[] toArray(T[] a) {
+	if (!checkInitializedRead()) {
+	    return null;
 	}
+	return getCollection().toArray(a);
+    }
 
-	public boolean remove(Object o) {
-		checkInitializedWrite();
-		if (getCollection().remove(o)) {
-			dirty();
-			return true;
-		}
-		return false;
+    @Override
+    public boolean add(E e) {
+	checkInitializedWrite();
+	if (getCollection().add(e)) {
+	    dirty();
+	    return true;
 	}
+	return false;
+    }
 
-	public boolean containsAll(Collection<?> c) {
-		if (!checkInitializedRead())
-			return false;
-		return getCollection().containsAll(c);
+    @Override
+    public boolean remove(Object o) {
+	checkInitializedWrite();
+	if (getCollection().remove(o)) {
+	    dirty();
+	    return true;
 	}
+	return false;
+    }
 
-	public boolean addAll(Collection<? extends E> c) {
-		checkInitializedWrite();
-		if (getCollection().addAll(c)) {
-			dirty();
-			return true;
-		}
-		return false;
+    @Override
+    public boolean containsAll(Collection<?> c) {
+	if (!checkInitializedRead()) {
+	    return false;
 	}
+	return getCollection().containsAll(c);
+    }
 
-	public boolean removeAll(Collection<?> c) {
-		checkInitializedWrite();
-		if (getCollection().removeAll(c)) {
-			dirty();
-			return true;
-		}
-		return false;
+    @Override
+    public boolean addAll(Collection<? extends E> c) {
+	checkInitializedWrite();
+	if (getCollection().addAll(c)) {
+	    dirty();
+	    return true;
 	}
+	return false;
+    }
 
-	public boolean retainAll(Collection<?> c) {
-		checkInitializedWrite();
-		if (getCollection().retainAll(c)) {
-			dirty();
-			return true;
-		}
-		return false;
+    @Override
+    public boolean removeAll(Collection<?> c) {
+	checkInitializedWrite();
+	if (getCollection().removeAll(c)) {
+	    dirty();
+	    return true;
 	}
+	return false;
+    }
 
-	public void clear() {
-		checkInitializedWrite();
-		if (!getCollection().isEmpty()) {
-			getCollection().clear();
-			dirty();
-		}
+    @Override
+    public boolean retainAll(Collection<?> c) {
+	checkInitializedWrite();
+	if (getCollection().retainAll(c)) {
+	    dirty();
+	    return true;
 	}
+	return false;
+    }
 
-	@Override
-	protected PersistentCollectionSnapshot createSnapshot(Object io, boolean forReading) {
-		PersistentCollectionSnapshotFactory factory = PersistentCollectionSnapshotFactory.newInstance(io);
-		if (forReading || !wasInitialized())
-			return factory.newPersistentCollectionSnapshot(getDetachedState());
-		return factory.newPersistentCollectionSnapshot(true, getDetachedState(), isDirty(), getCollection());
+    @Override
+    public void clear() {
+	checkInitializedWrite();
+	if (!getCollection().isEmpty()) {
+	    getCollection().clear();
+	    dirty();
 	}
+    }
+
+    @Override
+    protected PersistentCollectionSnapshot createSnapshot(Object io, boolean forReading) {
+	PersistentCollectionSnapshotFactory factory = PersistentCollectionSnapshotFactory.newInstance(io);
+	if (forReading || !wasInitialized()) {
+	    return factory.newPersistentCollectionSnapshot(getDetachedState());
+	}
+	return factory.newPersistentCollectionSnapshot(true, getDetachedState(), isDirty(), getCollection());
+    }
 }

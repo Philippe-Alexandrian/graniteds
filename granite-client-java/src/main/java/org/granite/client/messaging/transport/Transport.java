@@ -24,12 +24,10 @@ package org.granite.client.messaging.transport;
 import org.granite.client.messaging.channel.Channel;
 
 /**
- * Transport is a SPI describing a communication layer handling a low-level network protocol
- * It is used by a Channel to actually transmit the messages to or from the remote server
+ * Transport is a SPI describing a communication layer handling a low-level network protocol It is used by a Channel to actually transmit the messages to or from the remote server
  *
- * Usually transports are implicitly defined for the current {@link org.granite.client.platform.Platform} and created
- * internally by a {@link org.granite.client.messaging.channel.ChannelFactory} but it's possible to define custom
- * transport and register them
+ * Usually transports are implicitly defined for the current {@link org.granite.client.platform.Platform} and created internally by a
+ * {@link org.granite.client.messaging.channel.ChannelFactory} but it's possible to define custom transport and register them
  *
  * @author Franck WOLFF
  */
@@ -37,88 +35,100 @@ public interface Transport {
 
     /**
      * Set the current context for this transport (usually depends on the {@link org.granite.client.platform.Platform})
+     * 
      * @param context current context
      *
      */
-	void setContext(Object context);
+    void setContext(Object context);
 
     /**
      * The generic context object for this transport (actual type of the context depends on the {@link org.granite.client.platform.Platform})
+     * 
      * @return current context
      */
-	Object getContext();
+    Object getContext();
 
     /**
-     * Start the transport and enable transmission of data on the network
-     * If there is an exception during start, the status handler is notified {@link org.granite.client.messaging.transport.TransportStatusHandler#handleException}
+     * Start the transport and enable transmission of data on the network If there is an exception during start, the status handler is notified
+     * {@link org.granite.client.messaging.transport.TransportStatusHandler#handleException}
+     * 
      * @return true if correctly started, false if the transport could not start
      */
-	boolean start();
+    boolean start();
 
     /**
      * Is the transport started ?
+     * 
      * @return true if started
      */
-	boolean isStarted();
+    boolean isStarted();
 
     /**
      * Stop the transport and stop any communication on the network
      */
-	void stop();
+    void stop();
 
     /**
      * Indicates to the calling Channel that the transport should reconnect when data has been received
+     * 
      * @return true if the transport should reconnect
      */
     boolean isReconnectAfterReceive();
-    
+
     /**
-     * Indicates to the calling Channel that the transport should be closed after an authentication failure 
+     * Indicates to the calling Channel that the transport should be closed after an authentication failure
+     * 
      * @return true if the transport should close
      */
     boolean isDisconnectAfterAuthenticationFailure();
-    
+
     /**
-     * Indicates that authentication after reconnect should be delegated to a remoting channel 
+     * Indicates that authentication after reconnect should be delegated to a remoting channel
+     * 
      * @return true if authentication delegated
      */
     boolean isAuthenticationAfterReconnectWithRemoting();
 
     /**
      * Attach a status handler that will be notified of network activity and errors
+     * 
      * @param statusHandler status handler
      * @see org.granite.client.messaging.transport.TransportStatusHandler
      */
-	void setStatusHandler(TransportStatusHandler statusHandler);
+    void setStatusHandler(TransportStatusHandler statusHandler);
 
     /**
      * Get the status handler for this transport
+     * 
      * @return current status handler
      * @see org.granite.client.messaging.transport.TransportStatusHandler
      */
-	TransportStatusHandler getStatusHandler();
+    TransportStatusHandler getStatusHandler();
 
     /**
      * Register a stop listener for this transport
+     * 
      * @param listener stop listener
      * @see org.granite.client.messaging.transport.TransportStopListener
      */
-	void addStopListener(TransportStopListener listener);
+    void addStopListener(TransportStopListener listener);
 
     /**
      * Unregister a stop listener for this transport
+     * 
      * @param listener stop listener
      * @return true if the listener was unregistered, false if it was not present
      * @see org.granite.client.messaging.transport.TransportStopListener
      */
-	boolean removeStopListener(TransportStopListener listener);
+    boolean removeStopListener(TransportStopListener listener);
 
     /**
      * Send a message on the network
+     * 
      * @param channel originating channel
      * @param message message to send
      * @return future object that will be triggered asynchronously when the message is sent
      * @throws TransportException when an error occurs during send
      */
-	TransportFuture send(Channel channel, TransportMessage message) throws TransportException;
+    TransportFuture send(Channel channel, TransportMessage message) throws TransportException;
 }

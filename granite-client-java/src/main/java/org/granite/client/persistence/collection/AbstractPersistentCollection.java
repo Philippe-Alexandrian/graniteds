@@ -41,585 +41,680 @@ import org.granite.logging.Logger;
 import org.granite.messaging.persistence.PersistentCollectionSnapshot;
 import org.granite.util.TypeUtil;
 
-
 /**
  * @author Franck WOLFF
  */
 public abstract class AbstractPersistentCollection<C> implements PersistentCollection<C> {
-	
-	private static final long serialVersionUID = 1L;
-	
-	private static final Logger log = Logger.getLogger(AbstractPersistentCollection.class);
 
-	private volatile C collection = null;
-	private volatile boolean dirty = false;
-	private volatile String detachedState = null;
-	private Loader<C> loader = new DefaultCollectionLoader<C>();
-    private List<ChangeListener<C>> changeListeners = new ArrayList<ChangeListener<C>>();
-    private List<InitializationListener<C>> initializationListeners = new ArrayList<InitializationListener<C>>();
-	
-	protected AbstractPersistentCollection() {
-	}
-	
-	protected void init(C collection, String detachedState, boolean dirty) {
-		this.collection = collection;
-		if (detachedState != null)
-			this.detachedState = detachedState;
-		this.dirty = dirty;
-	}
-	
-	public Loader<C> getLoader() {
-		return this.loader;
-	}
-	public void setLoader(Loader<C> loader) {
-		this.loader = loader;
-	}
-	
-	protected boolean checkInitializedRead() {
-		if (wasInitialized())
-			return true;
-		loader.load(this, null);
-		return false;
-	}
-	
-	protected void checkInitializedWrite() {
-		if (!wasInitialized())
-			throw new LazyInitializationException(getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(this)));
-	}
-	
-	protected C getCollection() {
-		return collection;
-	}
-	
-	public String getDetachedState() {
-		return detachedState;
-	}
-	
-	protected ClassLoader getClassLoader() {
-		return Thread.currentThread().getContextClassLoader();
-	}
+    private static final long serialVersionUID = 1L;
 
-	public boolean wasInitialized() {
-		return collection != null;
-	}
+    private static final Logger log = Logger.getLogger(AbstractPersistentCollection.class);
 
-	public boolean isDirty() {
-		return dirty;
-	}
+    private volatile C collection = null;
+    private volatile boolean dirty = false;
+    private volatile String detachedState = null;
+    private Loader<C> loader = new DefaultCollectionLoader<>();
+    private List<ChangeListener<C>> changeListeners = new ArrayList<>();
+    private List<InitializationListener<C>> initializationListeners = new ArrayList<>();
 
-	public void dirty() {
-		dirty = true;
-        for (ChangeListener<C> listener : changeListeners)
-            listener.changed(this);
-	}
-
-	public void clearDirty() {
-		dirty = false;
-	}
-	
-	
-	public PersistentCollection<C> clone(boolean uninitialize) {
-		try {
-		    @SuppressWarnings("unchecked")
-			AbstractPersistentCollection<C> collection = TypeUtil.newInstance(getClass(), AbstractPersistentCollection.class);
-	    	if (wasInitialized() && !uninitialize)
-	    		collection.init(getCollection(), getDetachedState(), isDirty());
-	        return collection;
-		}
-		catch (Exception e) {
-			throw new RuntimeException("Could not clone collection " + this.getClass().getName(), e);
-		}
+    protected AbstractPersistentCollection() {
     }
 
-	
-	protected abstract PersistentCollectionSnapshot createSnapshot(Object io, boolean forReading);
-	protected abstract void updateFromSnapshot(ObjectInput in, PersistentCollectionSnapshot snapshot);
+    protected void init(C collectionP, String detachedStateP, boolean dirtyP) {
+	this.collection = collectionP;
+	if (detachedStateP != null) {
+	    this.detachedState = detachedStateP;
+	}
+	this.dirty = dirtyP;
+    }
 
-	public void writeExternal(ObjectOutput out) throws IOException {
-		PersistentCollectionSnapshot snapshot = createSnapshot(out, false);
-		snapshot.writeExternal(out);
+    @Override
+    public Loader<C> getLoader() {
+	return this.loader;
+    }
+
+    @Override
+    public void setLoader(Loader<C> loader) {
+	this.loader = loader;
+    }
+
+    protected boolean checkInitializedRead() {
+	if (wasInitialized()) {
+	    return true;
+	}
+	this.loader.load(this, null);
+	return false;
+    }
+
+    protected void checkInitializedWrite() {
+	if (!wasInitialized()) {
+	    throw new LazyInitializationException(getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(this)));
+	}
+    }
+
+    protected C getCollection() {
+	return this.collection;
+    }
+
+    public String getDetachedState() {
+	return this.detachedState;
+    }
+
+    protected ClassLoader getClassLoader() {
+	return Thread.currentThread().getContextClassLoader();
+    }
+
+    @Override
+    public boolean wasInitialized() {
+	return this.collection != null;
+    }
+
+    @Override
+    public boolean isDirty() {
+	return this.dirty;
+    }
+
+    @Override
+    public void dirty() {
+	this.dirty = true;
+	for (ChangeListener<C> listener : this.changeListeners) {
+	    listener.changed(this);
+	}
+    }
+
+    @Override
+    public void clearDirty() {
+	this.dirty = false;
+    }
+
+    @Override
+    public PersistentCollection<C> clone(boolean uninitialize) {
+	try {
+	    AbstractPersistentCollection<C> collectionL = TypeUtil.newInstance(getClass(), AbstractPersistentCollection.class);
+	    if (wasInitialized() && !uninitialize) {
+		collectionL.init(getCollection(), getDetachedState(), isDirty());
+	    }
+	    return collectionL;
+	} catch (Exception e) {
+	    throw new RuntimeException("Could not clone collection " + this.getClass().getName(), e);
+	}
+    }
+
+    protected abstract PersistentCollectionSnapshot createSnapshot(Object io, boolean forReading);
+
+    protected abstract void updateFromSnapshot(ObjectInput in, PersistentCollectionSnapshot snapshot);
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+	PersistentCollectionSnapshot snapshot = createSnapshot(out, false);
+	snapshot.writeExternal(out);
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	PersistentCollectionSnapshot snapshot = createSnapshot(in, true);
+	snapshot.readExternal(in);
+	updateFromSnapshot(in, snapshot);
+    }
+
+    @Override
+    public String toString() {
+	return getClass().getSimpleName() + " {initialized=" + wasInitialized() + ", dirty=" + isDirty() + "}" + (this.collection != null ? ": " + this.collection.toString() : "");
+    }
+
+    class IteratorProxy<E> implements Iterator<E> {
+
+	private final Iterator<E> iterator;
+
+	public IteratorProxy(Iterator<E> iterator) {
+	    this.iterator = iterator;
 	}
 
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		PersistentCollectionSnapshot snapshot = createSnapshot(in, true);
-		snapshot.readExternal(in);
-		updateFromSnapshot(in, snapshot);
-	}
-	
 	@Override
-	public String toString() {
-		return getClass().getSimpleName() + " {initialized=" + wasInitialized() + ", dirty=" + isDirty() + "}" +
-			(collection != null ? ": " + collection.toString() : "");
+	public boolean hasNext() {
+	    return this.iterator.hasNext();
 	}
 
-	class IteratorProxy<E> implements Iterator<E> {
-		
-		private final Iterator<E> iterator;
-		
-		public IteratorProxy(Iterator<E> iterator) {
-			this.iterator = iterator;
-		}
-
-		public boolean hasNext() {
-			return iterator.hasNext();
-		}
-
-		public E next() {
-			if (!checkInitializedRead())
-				return null;
-			return iterator.next();
-		}
-		
-		public void remove() {
-			checkInitializedWrite();
-			iterator.remove();
-			dirty();
-		}
-		
-		@Override
-		public int hashCode() {
-			return iterator.hashCode();
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			return iterator.equals(obj);
-		}
-	}
-	
-	class ListIteratorProxy<E> implements ListIterator<E> {
-		
-		private final ListIterator<E> iterator;
-
-		private E lastNextOrPrevious = null;
-		
-		public ListIteratorProxy(ListIterator<E> iterator) {
-			this.iterator = iterator;
-		}
-		
-		public boolean hasNext() {
-			return iterator.hasNext();
-		}
-
-		public E next() {
-			if (!checkInitializedRead())
-				return null;
-			return (lastNextOrPrevious = iterator.next());
-		}
-
-		public boolean hasPrevious() {
-			return iterator.hasPrevious();
-		}
-
-		public E previous() {
-			if (!checkInitializedRead())
-				return null;
-			return (lastNextOrPrevious = iterator.previous());
-		}
-
-		public int nextIndex() {
-			return iterator.nextIndex();
-		}
-
-		public int previousIndex() {
-			return iterator.previousIndex();
-		}
-
-		public void remove() {
-			checkInitializedWrite();
-			iterator.remove();
-			lastNextOrPrevious = null;
-			dirty();
-		}
-
-		public void set(E e) {
-			checkInitializedWrite();
-			iterator.set(e);
-			if (e == null ? lastNextOrPrevious != null : !e.equals(lastNextOrPrevious))
-				dirty();
-		}
-
-		public void add(E e) {
-			checkInitializedWrite();
-			iterator.add(e);
-			lastNextOrPrevious = null;
-			dirty();
-		}
-
-		@Override
-		public int hashCode() {
-			return iterator.hashCode();
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			return iterator.equals(obj);
-		}
-	}
-	
-	class CollectionProxy<E> implements Collection<E> {
-		
-		protected final Collection<E> collection;
-
-		public CollectionProxy(Collection<E> collection) {
-			this.collection = collection;
-		}
-
-		public int size() {
-			return collection.size();
-		}
-
-		public boolean isEmpty() {
-			return collection.isEmpty();
-		}
-
-		public boolean contains(Object o) {
-			return collection.contains(o);
-		}
-
-		public Iterator<E> iterator() {
-			return new IteratorProxy<E>(collection.iterator());
-		}
-
-		public Object[] toArray() {
-			return collection.toArray();
-		}
-
-		public <T> T[] toArray(T[] a) {
-			return collection.toArray(a);
-		}
-
-		public boolean add(E e) {
-			if (collection.add(e)) {
-				dirty();
-				return true;
-			}
-			return false;
-		}
-
-		public boolean remove(Object o) {
-			if (collection.remove(o)) {
-				dirty();
-				return true;
-			}
-			return false;
-		}
-
-		public boolean containsAll(Collection<?> c) {
-			return collection.containsAll(c);
-		}
-
-		public boolean addAll(Collection<? extends E> c) {
-			if (collection.addAll(c)) {
-				dirty();
-				return true;
-			}
-			return false;
-		}
-
-		public boolean removeAll(Collection<?> c) {
-			if (collection.removeAll(c)) {
-				dirty();
-				return true;
-			}
-			return false;
-		}
-
-		public boolean retainAll(Collection<?> c) {
-			if (collection.retainAll(c)) {
-				dirty();
-				return true;
-			}
-			return false;
-		}
-
-		public void clear() {
-			if (!collection.isEmpty()) {
-				collection.clear();
-				dirty();
-			}
-		}
-
-		@Override
-		public int hashCode() {
-			return collection.hashCode();
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			return collection.equals(obj);
-		}
-	}
-	
-	class SetProxy<E> extends CollectionProxy<E> implements Set<E> {
-
-		public SetProxy(Set<E> collection) {
-			super(collection);
-		}
-	}
-	
-	class ListProxy<E> extends CollectionProxy<E> implements List<E> {
-
-		public ListProxy(List<E> collection) {
-			super(collection);
-		}
-
-		public boolean addAll(int index, Collection<? extends E> c) {
-			if (((List<E>)collection).addAll(index, c)) {
-				dirty();
-				return true;
-			}
-			return false;
-		}
-
-		public E get(int index) {
-			return ((List<E>)collection).get(index);
-		}
-		
-		public E set(int index, E element) {
-			E previousElement = ((List<E>)collection).set(index, element);
-			if (previousElement == null ? element != null : !previousElement.equals(element))
-				dirty();
-			return previousElement;
-		}
-
-		public void add(int index, E element) {
-			((List<E>)collection).add(index, element);
-			dirty();
-		}
-
-		public E remove(int index) {
-			E removedElement = ((List<E>)collection).remove(index);
-			dirty();
-			return removedElement;
-		}
-
-		public int indexOf(Object o) {
-			return ((List<E>)collection).indexOf(o);
-		}
-
-		public int lastIndexOf(Object o) {
-			return ((List<E>)collection).lastIndexOf(o);
-		}
-
-		public ListIterator<E> listIterator() {
-			return listIterator(0);
-		}
-
-		public ListIterator<E> listIterator(int index) {
-			return new ListIteratorProxy<E>(((List<E>)collection).listIterator(index));
-		}
-
-		public List<E> subList(int fromIndex, int toIndex) {
-			return new ListProxy<E>(((List<E>)collection).subList(fromIndex, toIndex));
-		}
-	}
-	
-	class SortedSetProxy<E> extends SetProxy<E> implements SortedSet<E> {
-
-		public SortedSetProxy(SortedSet<E> collection) {
-			super(collection);
-		}
-
-		public Comparator<? super E> comparator() {
-			return ((SortedSet<E>)collection).comparator();
-		}
-
-		public SortedSet<E> subSet(E fromElement, E toElement) {
-			return new SortedSetProxy<E>(((SortedSet<E>)collection).subSet(fromElement, toElement));
-		}
-
-		public SortedSet<E> headSet(E toElement) {
-			return new SortedSetProxy<E>(((SortedSet<E>)collection).headSet(toElement));
-		}
-
-		public SortedSet<E> tailSet(E fromElement) {
-			return new SortedSetProxy<E>(((SortedSet<E>)collection).tailSet(fromElement));
-		}
-
-		public E first() {
-			return ((SortedSet<E>)collection).first();
-		}
-
-		public E last() {
-			return ((SortedSet<E>)collection).last();
-		}
-	}
-	
-	class SortedMapProxy<K, V> implements SortedMap<K, V> {
-		
-		protected final SortedMap<K, V> sortedMap;
-		
-		public SortedMapProxy(SortedMap<K, V> sortedMap) {
-			this.sortedMap = sortedMap;
-		}
-
-		public int size() {
-			return sortedMap.size();
-		}
-
-		public boolean isEmpty() {
-			return sortedMap.isEmpty();
-		}
-
-		public boolean containsKey(Object key) {
-			return sortedMap.containsKey(key);
-		}
-
-		public boolean containsValue(Object value) {
-			return sortedMap.containsValue(value);
-		}
-
-		public V get(Object key) {
-			return sortedMap.get(key);
-		}
-
-		public V put(K key, V value) {
-			boolean containsKey = sortedMap.containsKey(key);
-			V previousValue = sortedMap.put(key, value);
-			if (!containsKey || (previousValue == null ? value != null : !previousValue.equals(value)))
-				dirty();
-			return previousValue;
-		}
-
-		public V remove(Object key) {
-			boolean containsKey = sortedMap.containsKey(key);
-			V removedValue = sortedMap.remove(key);
-			if (containsKey)
-				dirty();
-			return removedValue;
-		}
-
-		public void putAll(Map<? extends K, ? extends V> m) {
-			for (Map.Entry<? extends K, ? extends V> entry : m.entrySet())
-				put(entry.getKey(), entry.getValue());
-		}
-
-		public void clear() {
-			if (!sortedMap.isEmpty()) {
-				sortedMap.clear();
-				dirty();
-			}
-		}
-
-		public Comparator<? super K> comparator() {
-			return sortedMap.comparator();
-		}
-
-		public SortedMap<K, V> subMap(K fromKey, K toKey) {
-			return new SortedMapProxy<K, V>(sortedMap.subMap(fromKey, toKey));
-		}
-
-		public SortedMap<K, V> headMap(K toKey) {
-			return new SortedMapProxy<K, V>(sortedMap.headMap(toKey));
-		}
-
-		public SortedMap<K, V> tailMap(K fromKey) {
-			return new SortedMapProxy<K, V>(sortedMap.tailMap(fromKey));
-		}
-
-		public K firstKey() {
-			return sortedMap.firstKey();
-		}
-
-		public K lastKey() {
-			return sortedMap.lastKey();
-		}
-
-		public Set<K> keySet() {
-			return new SetProxy<K>(sortedMap.keySet());
-		}
-
-		public Collection<V> values() {
-			return new CollectionProxy<V>(sortedMap.values());
-		}
-
-		public Set<Entry<K, V>> entrySet() {
-			return new SetProxy<Entry<K, V>>(sortedMap.entrySet());
-		}
-
-		@Override
-		public int hashCode() {
-			return sortedMap.hashCode();
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			return sortedMap.equals(obj);
-		}
+	@Override
+	public E next() {
+	    if (!checkInitializedRead()) {
+		return null;
+	    }
+	    return this.iterator.next();
 	}
 
-	
-    
+	@Override
+	public void remove() {
+	    checkInitializedWrite();
+	    this.iterator.remove();
+	    dirty();
+	}
+
+	@Override
+	public int hashCode() {
+	    return this.iterator.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+	    return this.iterator.equals(obj);
+	}
+    }
+
+    class ListIteratorProxy<E> implements ListIterator<E> {
+
+	private final ListIterator<E> iterator;
+
+	private E lastNextOrPrevious = null;
+
+	public ListIteratorProxy(ListIterator<E> iterator) {
+	    this.iterator = iterator;
+	}
+
+	@Override
+	public boolean hasNext() {
+	    return this.iterator.hasNext();
+	}
+
+	@Override
+	public E next() {
+	    if (!checkInitializedRead()) {
+		return null;
+	    }
+	    return (this.lastNextOrPrevious = this.iterator.next());
+	}
+
+	@Override
+	public boolean hasPrevious() {
+	    return this.iterator.hasPrevious();
+	}
+
+	@Override
+	public E previous() {
+	    if (!checkInitializedRead()) {
+		return null;
+	    }
+	    return (this.lastNextOrPrevious = this.iterator.previous());
+	}
+
+	@Override
+	public int nextIndex() {
+	    return this.iterator.nextIndex();
+	}
+
+	@Override
+	public int previousIndex() {
+	    return this.iterator.previousIndex();
+	}
+
+	@Override
+	public void remove() {
+	    checkInitializedWrite();
+	    this.iterator.remove();
+	    this.lastNextOrPrevious = null;
+	    dirty();
+	}
+
+	@Override
+	public void set(E e) {
+	    checkInitializedWrite();
+	    this.iterator.set(e);
+	    if (e == null ? this.lastNextOrPrevious != null : !e.equals(this.lastNextOrPrevious)) {
+		dirty();
+	    }
+	}
+
+	@Override
+	public void add(E e) {
+	    checkInitializedWrite();
+	    this.iterator.add(e);
+	    this.lastNextOrPrevious = null;
+	    dirty();
+	}
+
+	@Override
+	public int hashCode() {
+	    return this.iterator.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+	    return this.iterator.equals(obj);
+	}
+    }
+
+    class CollectionProxy<E> implements Collection<E> {
+
+	protected final Collection<E> collection;
+
+	public CollectionProxy(Collection<E> collection) {
+	    this.collection = collection;
+	}
+
+	@Override
+	public int size() {
+	    return this.collection.size();
+	}
+
+	@Override
+	public boolean isEmpty() {
+	    return this.collection.isEmpty();
+	}
+
+	@Override
+	public boolean contains(Object o) {
+	    return this.collection.contains(o);
+	}
+
+	@Override
+	public Iterator<E> iterator() {
+	    return new IteratorProxy<>(this.collection.iterator());
+	}
+
+	@Override
+	public Object[] toArray() {
+	    return this.collection.toArray();
+	}
+
+	@Override
+	public <T> T[] toArray(T[] a) {
+	    return this.collection.toArray(a);
+	}
+
+	@Override
+	public boolean add(E e) {
+	    if (this.collection.add(e)) {
+		dirty();
+		return true;
+	    }
+	    return false;
+	}
+
+	@Override
+	public boolean remove(Object o) {
+	    if (this.collection.remove(o)) {
+		dirty();
+		return true;
+	    }
+	    return false;
+	}
+
+	@Override
+	public boolean containsAll(Collection<?> c) {
+	    return this.collection.containsAll(c);
+	}
+
+	@Override
+	public boolean addAll(Collection<? extends E> c) {
+	    if (this.collection.addAll(c)) {
+		dirty();
+		return true;
+	    }
+	    return false;
+	}
+
+	@Override
+	public boolean removeAll(Collection<?> c) {
+	    if (this.collection.removeAll(c)) {
+		dirty();
+		return true;
+	    }
+	    return false;
+	}
+
+	@Override
+	public boolean retainAll(Collection<?> c) {
+	    if (this.collection.retainAll(c)) {
+		dirty();
+		return true;
+	    }
+	    return false;
+	}
+
+	@Override
+	public void clear() {
+	    if (!this.collection.isEmpty()) {
+		this.collection.clear();
+		dirty();
+	    }
+	}
+
+	@Override
+	public int hashCode() {
+	    return this.collection.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+	    return this.collection.equals(obj);
+	}
+    }
+
+    class SetProxy<E> extends CollectionProxy<E> implements Set<E> {
+
+	public SetProxy(Set<E> collection) {
+	    super(collection);
+	}
+    }
+
+    class ListProxy<E> extends CollectionProxy<E> implements List<E> {
+
+	public ListProxy(List<E> collection) {
+	    super(collection);
+	}
+
+	@Override
+	public boolean addAll(int index, Collection<? extends E> c) {
+	    if (((List<E>) this.collection).addAll(index, c)) {
+		dirty();
+		return true;
+	    }
+	    return false;
+	}
+
+	@Override
+	public E get(int index) {
+	    return ((List<E>) this.collection).get(index);
+	}
+
+	@Override
+	public E set(int index, E element) {
+	    E previousElement = ((List<E>) this.collection).set(index, element);
+	    if (previousElement == null ? element != null : !previousElement.equals(element)) {
+		dirty();
+	    }
+	    return previousElement;
+	}
+
+	@Override
+	public void add(int index, E element) {
+	    ((List<E>) this.collection).add(index, element);
+	    dirty();
+	}
+
+	@Override
+	public E remove(int index) {
+	    E removedElement = ((List<E>) this.collection).remove(index);
+	    dirty();
+	    return removedElement;
+	}
+
+	@Override
+	public int indexOf(Object o) {
+	    return ((List<E>) this.collection).indexOf(o);
+	}
+
+	@Override
+	public int lastIndexOf(Object o) {
+	    return ((List<E>) this.collection).lastIndexOf(o);
+	}
+
+	@Override
+	public ListIterator<E> listIterator() {
+	    return listIterator(0);
+	}
+
+	@Override
+	public ListIterator<E> listIterator(int index) {
+	    return new ListIteratorProxy<>(((List<E>) this.collection).listIterator(index));
+	}
+
+	@Override
+	public List<E> subList(int fromIndex, int toIndex) {
+	    return new ListProxy<>(((List<E>) this.collection).subList(fromIndex, toIndex));
+	}
+    }
+
+    class SortedSetProxy<E> extends SetProxy<E> implements SortedSet<E> {
+
+	public SortedSetProxy(SortedSet<E> collection) {
+	    super(collection);
+	}
+
+	@Override
+	public Comparator<? super E> comparator() {
+	    return ((SortedSet<E>) this.collection).comparator();
+	}
+
+	@Override
+	public SortedSet<E> subSet(E fromElement, E toElement) {
+	    return new SortedSetProxy<>(((SortedSet<E>) this.collection).subSet(fromElement, toElement));
+	}
+
+	@Override
+	public SortedSet<E> headSet(E toElement) {
+	    return new SortedSetProxy<>(((SortedSet<E>) this.collection).headSet(toElement));
+	}
+
+	@Override
+	public SortedSet<E> tailSet(E fromElement) {
+	    return new SortedSetProxy<>(((SortedSet<E>) this.collection).tailSet(fromElement));
+	}
+
+	@Override
+	public E first() {
+	    return ((SortedSet<E>) this.collection).first();
+	}
+
+	@Override
+	public E last() {
+	    return ((SortedSet<E>) this.collection).last();
+	}
+    }
+
+    class SortedMapProxy<K, V> implements SortedMap<K, V> {
+
+	protected final SortedMap<K, V> sortedMap;
+
+	public SortedMapProxy(SortedMap<K, V> sortedMap) {
+	    this.sortedMap = sortedMap;
+	}
+
+	@Override
+	public int size() {
+	    return this.sortedMap.size();
+	}
+
+	@Override
+	public boolean isEmpty() {
+	    return this.sortedMap.isEmpty();
+	}
+
+	@Override
+	public boolean containsKey(Object key) {
+	    return this.sortedMap.containsKey(key);
+	}
+
+	@Override
+	public boolean containsValue(Object value) {
+	    return this.sortedMap.containsValue(value);
+	}
+
+	@Override
+	public V get(Object key) {
+	    return this.sortedMap.get(key);
+	}
+
+	@Override
+	public V put(K key, V value) {
+	    boolean containsKey = this.sortedMap.containsKey(key);
+	    V previousValue = this.sortedMap.put(key, value);
+	    if (!containsKey || (previousValue == null ? value != null : !previousValue.equals(value))) {
+		dirty();
+	    }
+	    return previousValue;
+	}
+
+	@Override
+	public V remove(Object key) {
+	    boolean containsKey = this.sortedMap.containsKey(key);
+	    V removedValue = this.sortedMap.remove(key);
+	    if (containsKey) {
+		dirty();
+	    }
+	    return removedValue;
+	}
+
+	@Override
+	public void putAll(Map<? extends K, ? extends V> m) {
+	    for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
+		put(entry.getKey(), entry.getValue());
+	    }
+	}
+
+	@Override
+	public void clear() {
+	    if (!this.sortedMap.isEmpty()) {
+		this.sortedMap.clear();
+		dirty();
+	    }
+	}
+
+	@Override
+	public Comparator<? super K> comparator() {
+	    return this.sortedMap.comparator();
+	}
+
+	@Override
+	public SortedMap<K, V> subMap(K fromKey, K toKey) {
+	    return new SortedMapProxy<>(this.sortedMap.subMap(fromKey, toKey));
+	}
+
+	@Override
+	public SortedMap<K, V> headMap(K toKey) {
+	    return new SortedMapProxy<>(this.sortedMap.headMap(toKey));
+	}
+
+	@Override
+	public SortedMap<K, V> tailMap(K fromKey) {
+	    return new SortedMapProxy<>(this.sortedMap.tailMap(fromKey));
+	}
+
+	@Override
+	public K firstKey() {
+	    return this.sortedMap.firstKey();
+	}
+
+	@Override
+	public K lastKey() {
+	    return this.sortedMap.lastKey();
+	}
+
+	@Override
+	public Set<K> keySet() {
+	    return new SetProxy<>(this.sortedMap.keySet());
+	}
+
+	@Override
+	public Collection<V> values() {
+	    return new CollectionProxy<>(this.sortedMap.values());
+	}
+
+	@Override
+	public Set<Entry<K, V>> entrySet() {
+	    return new SetProxy<>(this.sortedMap.entrySet());
+	}
+
+	@Override
+	public int hashCode() {
+	    return this.sortedMap.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+	    return this.sortedMap.equals(obj);
+	}
+    }
+
+    @Override
     public void addListener(ChangeListener<C> listener) {
-        if (!changeListeners.contains(listener))
-            changeListeners.add(listener);
-    }
-    
-    public void removeListener(ChangeListener<C> listener) {
-        changeListeners.remove(listener);
-    }
-	
-	
-	private static class DefaultCollectionLoader<C> implements Loader<C> {
-		
-		public void load(PersistentCollection<C> collection, InitializationCallback<C> callback) {
-			throw new LazyInitializationException(collection.getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(collection)));
-		}
-		
-		public void onInitializing() {
-		}
-		
-		public void onInitialize() {
-		}
-		
-		public void onUninitialize() {			
-		}
+	if (!this.changeListeners.contains(listener)) {
+	    this.changeListeners.add(listener);
 	}
-    
-    public void addListener(InitializationListener<C> listener) {
-        if (!initializationListeners.contains(listener))
-            initializationListeners.add(listener);
     }
-    
-    public void removeListener(InitializationListener<C> listener) {
-        initializationListeners.remove(listener);
-    }
-    
-    public void initializing() {
-    	loader.onInitializing();
-    }
-    
-	public void initialize(C content, Initializer<C> initializer) {        
-    	loader.onInitialize();
-    	
-        doInitialize(content, initializer != null);
-        if (initializer != null)
-        	initializer.initialize(content);
-        
-        for (InitializationListener<C> listener : initializationListeners)
-            listener.initialized(this);
-        
-        log.debug("initialized");
-	}
-    
-    protected abstract void doInitialize(C content, boolean empty);
-    
-    public void uninitialize() {
-        loader.onUninitialize();
-        
-        for (InitializationListener<C> listener : initializationListeners)
-            listener.uninitialized(this);
 
-        collection = null;
-        
-        log.debug("uninitialized");
+    @Override
+    public void removeListener(ChangeListener<C> listener) {
+	this.changeListeners.remove(listener);
     }
-    
+
+    static class DefaultCollectionLoader<C> implements Loader<C> {
+
+	@Override
+	public void load(PersistentCollection<C> collection, InitializationCallback<C> callback) {
+	    throw new LazyInitializationException(collection.getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(collection)));
+	}
+
+	@Override
+	public void onInitializing() {
+	    // Empty.
+	}
+
+	@Override
+	public void onInitialize() {
+	    // Empty.
+	}
+
+	@Override
+	public void onUninitialize() {
+	    // Empty.
+	}
+    }
+
+    @Override
+    public void addListener(InitializationListener<C> listener) {
+	if (!this.initializationListeners.contains(listener)) {
+	    this.initializationListeners.add(listener);
+	}
+    }
+
+    @Override
+    public void removeListener(InitializationListener<C> listener) {
+	this.initializationListeners.remove(listener);
+    }
+
+    @Override
+    public void initializing() {
+	this.loader.onInitializing();
+    }
+
+    @Override
+    public void initialize(C content, Initializer<C> initializer) {
+	this.loader.onInitialize();
+
+	doInitialize(content, initializer != null);
+	if (initializer != null) {
+	    initializer.initialize(content);
+	}
+
+	for (InitializationListener<C> listener : this.initializationListeners) {
+	    listener.initialized(this);
+	}
+
+	log.debug("initialized");
+    }
+
+    protected abstract void doInitialize(C content, boolean empty);
+
+    @Override
+    public void uninitialize() {
+	this.loader.onUninitialize();
+
+	for (InitializationListener<C> listener : this.initializationListeners) {
+	    listener.uninitialized(this);
+	}
+
+	this.collection = null;
+
+	log.debug("uninitialized");
+    }
+
+    @Override
     public void withInitialized(InitializationCallback<C> callback) {
-        if (wasInitialized())
-            callback.call(this);
-        else
-        	loader.load(this, callback);
+	if (wasInitialized()) {
+	    callback.call(this);
+	} else {
+	    this.loader.load(this, callback);
+	}
     }
 }

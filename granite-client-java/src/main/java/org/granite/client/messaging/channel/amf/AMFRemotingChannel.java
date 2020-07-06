@@ -47,57 +47,58 @@ import flex.messaging.messages.Message;
  * @author Franck WOLFF
  */
 public class AMFRemotingChannel extends AbstractAMFChannel implements RemotingChannel {
-	
-	protected final MessagingCodec<AMF0Message> codec;
-	protected volatile int index = 1;
-	
-	public AMFRemotingChannel(Transport transport, Configuration configuration, String id, URI uri, int maxConcurrentRequests) {
-		super(transport, id, uri, maxConcurrentRequests);
-		
-		this.codec = new AMF0MessagingCodec(configuration);
-	}
 
-    public AMFRemotingChannel(Transport transport, MessagingCodec<AMF0Message> codec, String id, URI uri, int maxConcurrentRequests) {
-        super(transport, id, uri, maxConcurrentRequests);
+    protected final MessagingCodec<AMF0Message> codec;
+    protected volatile int index = 1;
 
-        this.codec = codec;
+    public AMFRemotingChannel(Transport transport, Configuration configuration, String id, URI uri, int maxConcurrentRequests) {
+	super(transport, id, uri, maxConcurrentRequests);
+
+	this.codec = new AMF0MessagingCodec(configuration);
     }
 
-	@Override
-	protected TransportMessage createTransportMessage(AsyncToken token) throws UnsupportedEncodingException {
-		AMF0Message amf0Message = new AMF0Message();
-		for (Message message : convertToAmf(token.getRequest())) {
-			AMF3Object data = new AMF3Object(message);
-		    AMF0Body body = new AMF0Body("", "/" + (index++), new Object[]{data}, AMF0Body.DATA_TYPE_AMF3_OBJECT);
-		    amf0Message.addBody(body);
-		}
-		return new DefaultTransportMessage<AMF0Message>(token.getId(), false, token.isDisconnectRequest(), clientId, null, amf0Message, codec);
+    public AMFRemotingChannel(Transport transport, MessagingCodec<AMF0Message> codec, String id, URI uri, int maxConcurrentRequests) {
+	super(transport, id, uri, maxConcurrentRequests);
+
+	this.codec = codec;
+    }
+
+    @Override
+    protected TransportMessage createTransportMessage(AsyncToken token) throws UnsupportedEncodingException {
+	AMF0Message amf0Message = new AMF0Message();
+	for (Message message : convertToAmf(token.getRequest())) {
+	    AMF3Object data = new AMF3Object(message);
+	    AMF0Body body = new AMF0Body("", "/" + (this.index++), new Object[] { data }, AMF0Body.DATA_TYPE_AMF3_OBJECT);
+	    amf0Message.addBody(body);
+	}
+	return new DefaultTransportMessage<>(token.getId(), false, token.isDisconnectRequest(), this.clientId, null, amf0Message, this.codec);
+    }
+
+    @Override
+    protected ResponseMessage decodeResponse(InputStream is) throws IOException {
+	final AMF0Message amf0Message = this.codec.decode(is);
+	final int messagesCount = amf0Message.getBodyCount();
+
+	AbstractResponseMessage response = null, previous = null;
+
+	for (int i = 0; i < messagesCount; i++) {
+	    AMF0Body body = amf0Message.getBody(i);
+
+	    if (!(body.getValue() instanceof AcknowledgeMessage)) {
+		throw new RuntimeException("Message should be an AcknowledgeMessage: " + body.getValue());
+	    }
+
+	    AcknowledgeMessage message = (AcknowledgeMessage) body.getValue();
+	    AbstractResponseMessage current = convertFromAmf(message);
+
+	    if (response == null) {
+		response = previous = current;
+	    } else {
+		previous.setNext(current);
+		previous = current;
+	    }
 	}
 
-	@Override
-	protected ResponseMessage decodeResponse(InputStream is) throws IOException {
-		final AMF0Message amf0Message = codec.decode(is);
-		final int messagesCount = amf0Message.getBodyCount();
-		
-		AbstractResponseMessage response = null, previous = null;
-		
-		for (int i = 0; i < messagesCount; i++) {
-			AMF0Body body = amf0Message.getBody(i);
-			
-			if (!(body.getValue() instanceof AcknowledgeMessage))
-				throw new RuntimeException("Message should be an AcknowledgeMessage: " + body.getValue());
-			
-			AcknowledgeMessage message = (AcknowledgeMessage)body.getValue();
-			AbstractResponseMessage current = convertFromAmf(message);
-			
-			if (response == null)
-				response = previous = current;
-			else {
-				previous.setNext(current);
-				previous = current;
-			}
-		}
-		
-		return response;
-	}
+	return response;
+    }
 }

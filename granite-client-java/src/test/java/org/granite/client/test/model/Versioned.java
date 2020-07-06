@@ -27,12 +27,12 @@ import org.granite.client.persistence.Version;
 
 public abstract class Versioned implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@Version
+    @Version
     private Integer version;
 
     public Integer getVersion() {
-        return version;
+	return this.version;
     }
 }

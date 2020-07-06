@@ -38,20 +38,20 @@ public abstract class ResultFaultIssuesResponseListener implements ResponseListe
      *
      * @param event issue event
      */
-	public abstract void onIssue(IssueEvent event);
+    public abstract void onIssue(IssueEvent event);
 
-	@Override
-	public void onFailure(FailureEvent event) {
-		onIssue(event);
-	}
+    @Override
+    public void onFailure(FailureEvent event) {
+	onIssue(event);
+    }
 
-	@Override
-	public void onTimeout(TimeoutEvent event) {
-		onIssue(event);
-	}
+    @Override
+    public void onTimeout(TimeoutEvent event) {
+	onIssue(event);
+    }
 
-	@Override
-	public void onCancelled(CancelledEvent event) {
-		onIssue(event);
-	}
+    @Override
+    public void onCancelled(CancelledEvent event) {
+	onIssue(event);
+    }
 }

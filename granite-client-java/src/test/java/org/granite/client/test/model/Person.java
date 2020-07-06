@@ -37,11 +37,9 @@ public class Person extends AbstractEntity implements NamedEntity, DocumentedEnt
 
     @RemoteAlias("org.granite.example.addressbook.entity.Person$Salutation")
     public enum Salutation {
-        Mr,
-        Ms,
-        Dr
+	Mr, Ms, Dr
     }
-    
+
     private Salutation salutation;
     private String firstName;
     private String lastName;
@@ -50,56 +48,71 @@ public class Person extends AbstractEntity implements NamedEntity, DocumentedEnt
     private Document document;
 
     public Salutation getSalutation() {
-		return salutation;
-	}
-	public void setSalutation(Salutation salutation) {
-		this.salutation = salutation;
-	}
-
-	public String getFirstName() {
-        return firstName;
+	return this.salutation;
     }
+
+    public void setSalutation(Salutation salutation) {
+	this.salutation = salutation;
+    }
+
+    @Override
+    public String getFirstName() {
+	return this.firstName;
+    }
+
+    @Override
     public void setFirstName(String firstName) {
-        this.firstName = firstName;
+	this.firstName = firstName;
     }
 
+    @Override
     public String getLastName() {
-        return lastName;
+	return this.lastName;
     }
+
+    @Override
     public void setLastName(String lastName) {
-        this.lastName = lastName;
+	this.lastName = lastName;
     }
 
     public Set<Contact> getContacts() {
-        return contacts;
+	return this.contacts;
     }
+
     public void setContacts(Set<Contact> contacts) {
-        this.contacts = contacts;
+	this.contacts = contacts;
     }
 
     public Contact getMainContact() {
-        return mainContact;
+	return this.mainContact;
     }
+
     public void setMainContact(Contact mainContact) {
-        this.mainContact = mainContact;
+	this.mainContact = mainContact;
     }
 
+    @Override
     public Document getDocument() {
-        return document;
-    }
-    public void setDocument(Document document) {
-        this.document = document;
+	return this.document;
     }
 
+    @Override
+    public void setDocument(Document document) {
+	this.document = document;
+    }
+
+    @Override
     public String getFullName() {
-        StringBuilder sb = new StringBuilder();
-        if (firstName != null && firstName.length() > 0)
-            sb.append(firstName);
-        if (lastName != null && lastName.length() > 0) {
-            if (sb.length() > 0)
-                sb.append(' ');
-            sb.append(lastName);
-        }
-        return sb.toString();
+	StringBuilder sb = new StringBuilder();
+	if ((this.firstName != null) && (this.firstName.length() > 0)) {
+	    sb.append(this.firstName);
+	}
+	if ((this.lastName != null) && (this.lastName.length() > 0)) {
+	    if (sb.length() > 0) {
+		sb.append(' ');
+	    }
+	    sb.append(this.lastName);
+	}
+	return sb.toString();
     }
 }

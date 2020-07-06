@@ -38,51 +38,50 @@ import flex.messaging.messages.Message;
  * @author Franck WOLFF
  */
 public class JMFAMF3MessagingCodec implements MessagingCodec<Message[]> {
-	
-	private final ClientSharedContext sharedContext;
-	
-	public JMFAMF3MessagingCodec(ClientSharedContext sharedContext) {
-		this.sharedContext = sharedContext;
-	}
 
-	@Override
-	public ClientType getClientType() {
-		return ClientType.JAVA;
-	}
+    private final ClientSharedContext sharedContext;
 
-	@Override
-	public String getContentType() {
-		return ContentType.JMF_AMF.mimeType();
-	}
+    public JMFAMF3MessagingCodec(ClientSharedContext sharedContext) {
+	this.sharedContext = sharedContext;
+    }
 
-	@Override
-	public void encode(Message[] messages, OutputStream output) throws IOException {
-		@SuppressWarnings("all")
-		JMFSerializer serializer = new JMFSerializer(output, sharedContext);
-		serializer.writeObject(messages);
-	}
+    @Override
+    public ClientType getClientType() {
+	return ClientType.JAVA;
+    }
 
-	@Override
-	public Message[] decode(InputStream input) throws IOException {
-		JMFDeserializer deserializer = new JMFDeserializer(input, sharedContext);
-		
-		Message[] messages = null;
-		try {
-			messages = (Message[])deserializer.readObject();
-			if (messages != null) {
-				for (Message message : messages) {
-					if (message != null && Boolean.TRUE.equals(message.getHeader(Channel.BYTEARRAY_BODY_HEADER))) {
-						byte[] body = (byte[])message.getBody();
-						deserializer = new JMFDeserializer(new ByteArrayInputStream(body), sharedContext);
-						message.setBody(deserializer.readObject());
-					}
-				}
-			}
+    @Override
+    public String getContentType() {
+	return ContentType.JMF_AMF.mimeType();
+    }
+
+    @Override
+    public void encode(Message[] messages, OutputStream output) throws IOException {
+	@SuppressWarnings("all")
+	JMFSerializer serializer = new JMFSerializer(output, this.sharedContext);
+	serializer.writeObject(messages);
+    }
+
+    @Override
+    public Message[] decode(InputStream input) throws IOException {
+	JMFDeserializer deserializer = new JMFDeserializer(input, this.sharedContext);
+
+	Message[] messages = null;
+	try {
+	    messages = (Message[]) deserializer.readObject();
+	    if (messages != null) {
+		for (Message message : messages) {
+		    if ((message != null) && Boolean.TRUE.equals(message.getHeader(Channel.BYTEARRAY_BODY_HEADER))) {
+			byte[] body = (byte[]) message.getBody();
+			deserializer = new JMFDeserializer(new ByteArrayInputStream(body), this.sharedContext);
+			message.setBody(deserializer.readObject());
+		    }
 		}
-		catch (ClassNotFoundException e) {
-			throw new IOException(e);
-		}
-		
-		return (messages != null ? messages : new Message[0]);
+	    }
+	} catch (ClassNotFoundException e) {
+	    throw new IOException(e);
 	}
+
+	return (messages != null ? messages : new Message[0]);
+    }
 }

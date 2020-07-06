@@ -33,31 +33,33 @@ import org.granite.util.TypeUtil;
  */
 public abstract class PersistentCollectionSnapshotFactory {
 
-	public static PersistentCollectionSnapshotFactory newInstance(Object io) {
-		if (io.getClass().getSimpleName().startsWith("AMF3"))	// AMF3Serializer / AMF3Deserializer
-			return newInstance(ContentType.AMF);
-		return newInstance(ContentType.JMF_AMF);
+    public static PersistentCollectionSnapshotFactory newInstance(Object io) {
+	if (io.getClass().getSimpleName().startsWith("AMF3")) {
+	    return newInstance(ContentType.AMF);
 	}
-	
-	
-	public static PersistentCollectionSnapshotFactory newInstance(ContentType contentType) {
-		try {
-			switch (contentType) {
-			case JMF_AMF:
-				return TypeUtil.newInstance("org.granite.client.messaging.jmf.persistence.JMFPersistentCollectionSnapshotFactory", PersistentCollectionSnapshotFactory.class);
-			case AMF:
-				return TypeUtil.newInstance("org.granite.client.messaging.amf.persistence.AMFPersistentCollectionSnapshotFactory", PersistentCollectionSnapshotFactory.class);
-			default:
-				throw new UnsupportedOperationException("Unsupported content type: " + contentType);
-			}
-		}
-		catch (Exception e) {
-			throw new RuntimeException("Could not create collection snapshot factory: " + contentType, e);
-		}
+	return newInstance(ContentType.JMF_AMF);
+    }
+
+    public static PersistentCollectionSnapshotFactory newInstance(ContentType contentType) {
+	try {
+	    switch (contentType) {
+	    case JMF_AMF:
+		return TypeUtil.newInstance("org.granite.client.messaging.jmf.persistence.JMFPersistentCollectionSnapshotFactory", PersistentCollectionSnapshotFactory.class);
+	    case AMF:
+		return TypeUtil.newInstance("org.granite.client.messaging.amf.persistence.AMFPersistentCollectionSnapshotFactory", PersistentCollectionSnapshotFactory.class);
+	    default:
+		throw new UnsupportedOperationException("Unsupported content type: " + contentType);
+	    }
+	} catch (Exception e) {
+	    throw new RuntimeException("Could not create collection snapshot factory: " + contentType, e);
 	}
-	
-	public abstract PersistentCollectionSnapshot newPersistentCollectionSnapshot(String detachedState);
-	public abstract PersistentCollectionSnapshot newPersistentCollectionSnapshot(boolean sorted, String detachedState);
-	public abstract PersistentCollectionSnapshot newPersistentCollectionSnapshot(boolean initialized, String detachedState, boolean dirty, Collection<?> collection);
-	public abstract PersistentCollectionSnapshot newPersistentCollectionSnapshot(boolean initialized, String detachedState, boolean dirty, Map<?, ?> collection);
+    }
+
+    public abstract PersistentCollectionSnapshot newPersistentCollectionSnapshot(String detachedState);
+
+    public abstract PersistentCollectionSnapshot newPersistentCollectionSnapshot(boolean sorted, String detachedState);
+
+    public abstract PersistentCollectionSnapshot newPersistentCollectionSnapshot(boolean initialized, String detachedState, boolean dirty, Collection<?> collection);
+
+    public abstract PersistentCollectionSnapshot newPersistentCollectionSnapshot(boolean initialized, String detachedState, boolean dirty, Map<?, ?> collection);
 }

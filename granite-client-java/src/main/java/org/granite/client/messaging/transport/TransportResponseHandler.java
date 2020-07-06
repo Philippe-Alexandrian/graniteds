@@ -26,11 +26,11 @@ package org.granite.client.messaging.transport;
  */
 public interface TransportResponseHandler<M> {
 
-	void onMessage(M message);
-	
-	void onError(Exception e);
-	
-	void onClose();
+    void onMessage(M message);
 
-	void onCancel();
+    void onError(Exception e);
+
+    void onClose();
+
+    void onCancel();
 }

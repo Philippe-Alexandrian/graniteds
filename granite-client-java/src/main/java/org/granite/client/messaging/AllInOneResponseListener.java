@@ -37,32 +37,33 @@ public abstract class AllInOneResponseListener implements ResponseListener {
 
     /**
      * Callback called for any kind of channel event
+     * 
      * @param event channel event
      */
-	public abstract void onEvent(Event event);
-	
-	@Override
-	public void onResult(ResultEvent event) {
-		onEvent(event);
-	}
+    public abstract void onEvent(Event event);
 
-	@Override
-	public void onFault(FaultEvent event) {
-		onEvent(event);
-	}
+    @Override
+    public void onResult(ResultEvent event) {
+	onEvent(event);
+    }
 
-	@Override
-	public void onFailure(FailureEvent event) {
-		onEvent(event);
-	}
+    @Override
+    public void onFault(FaultEvent event) {
+	onEvent(event);
+    }
 
-	@Override
-	public void onTimeout(TimeoutEvent event) {
-		onEvent(event);
-	}
+    @Override
+    public void onFailure(FailureEvent event) {
+	onEvent(event);
+    }
 
-	@Override
-	public void onCancelled(CancelledEvent event) {
-		onEvent(event);
-	}
+    @Override
+    public void onTimeout(TimeoutEvent event) {
+	onEvent(event);
+    }
+
+    @Override
+    public void onCancelled(CancelledEvent event) {
+	onEvent(event);
+    }
 }

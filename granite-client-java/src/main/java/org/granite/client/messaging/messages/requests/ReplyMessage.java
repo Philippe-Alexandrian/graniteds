@@ -21,10 +21,10 @@
  */
 package org.granite.client.messaging.messages.requests;
 
+import java.util.Map;
+
 import org.granite.client.messaging.messages.AbstractMessage;
 import org.granite.client.messaging.messages.Message;
-
-import java.util.Map;
 
 /**
  * @author Franck WOLFF
@@ -34,70 +34,62 @@ public final class ReplyMessage extends AbstractTopicRequestMessage {
     private static final long serialVersionUID = 1L;
 
     private String correlationId = null;
-	private Object body = null;
+    private Object body = null;
 
-	public ReplyMessage() {
-	}
-
-	public ReplyMessage(String destination, String topic, String correlationId, Object body) {
-		this(null, destination, topic, correlationId, body);
-	}
-
-	public ReplyMessage(String clientId, String destination, String topic, String correlationId, Object body) {
-		super(clientId, destination, topic);
-
-        this.correlationId = correlationId;
-		this.body = body;
-	}
-
-	public ReplyMessage(
-            String id,
-            String clientId,
-            long timestamp,
-            long timeToLive,
-            Map<String, Object> headers,
-            String destination,
-            String topic,
-            String correlationId,
-            Object body) {
-		
-		super(id, clientId, timestamp, timeToLive, headers, destination, topic);
-
-        this.correlationId = correlationId;
-		this.body = body;
-	}
-
-	@Override
-	public Type getType() {
-		return Type.REPLY;
-	}
-
-	public Object getBody() {
-		return body;
-	}
-
-	public void setBody(Object body) {
-		this.body = body;
-	}
-
-    public String getCorrelationId() {
-        return correlationId;
+    public ReplyMessage() {
     }
 
-	@Override
-	public Message copy() {
-		ReplyMessage message = new ReplyMessage();
-		
-		copy(message);
-		
-		return message;
-	}
+    public ReplyMessage(String destination, String topic, String correlationId, Object body) {
+	this(null, destination, topic, correlationId, body);
+    }
 
-	@Override
-	protected void copy(AbstractMessage message) {
-		super.copy(message);
-		
-		((ReplyMessage)message).correlationId = correlationId;
-		((ReplyMessage)message).body = body;
-	}
+    public ReplyMessage(String clientId, String destination, String topic, String correlationId, Object body) {
+	super(clientId, destination, topic);
+
+	this.correlationId = correlationId;
+	this.body = body;
+    }
+
+    public ReplyMessage(String id, String clientId, long timestamp, long timeToLive, Map<String, Object> headers, String destination, String topic, String correlationId,
+	    Object body) {
+
+	super(id, clientId, timestamp, timeToLive, headers, destination, topic);
+
+	this.correlationId = correlationId;
+	this.body = body;
+    }
+
+    @Override
+    public Type getType() {
+	return Type.REPLY;
+    }
+
+    public Object getBody() {
+	return this.body;
+    }
+
+    public void setBody(Object body) {
+	this.body = body;
+    }
+
+    public String getCorrelationId() {
+	return this.correlationId;
+    }
+
+    @Override
+    public Message copy() {
+	ReplyMessage message = new ReplyMessage();
+
+	copy(message);
+
+	return message;
+    }
+
+    @Override
+    protected void copy(AbstractMessage message) {
+	super.copy(message);
+
+	((ReplyMessage) message).correlationId = this.correlationId;
+	((ReplyMessage) message).body = this.body;
+    }
 }

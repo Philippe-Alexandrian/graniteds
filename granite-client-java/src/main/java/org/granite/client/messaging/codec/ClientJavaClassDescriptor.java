@@ -33,74 +33,67 @@ import org.granite.util.TypeUtil;
  */
 public class ClientJavaClassDescriptor extends DefaultActionScriptClassDescriptor {
 
-	private static final SunConstructorFactory factory = new SunConstructorFactory();
-    private static final ConcurrentHashMap<String, Constructor<?>> constructors =
-        new ConcurrentHashMap<String, Constructor<?>>();
-    
-    
-	public ClientJavaClassDescriptor(String type, byte encoding) {
-		super(type, encoding);
+    private static final SunConstructorFactory factory = new SunConstructorFactory();
+    private static final ConcurrentHashMap<String, Constructor<?>> constructors = new ConcurrentHashMap<>();
+
+    public ClientJavaClassDescriptor(String type, byte encoding) {
+	super(type, encoding);
+    }
+
+    @Override
+    public Object newJavaInstance() {
+	try {
+	    return super.newJavaInstance();
+	} catch (RuntimeException e) {
+	    if (e.getCause() instanceof InstantiationException) {
+		return findDefaultConstructor();
+	    }
+	    throw e;
 	}
-	
-	@Override
-	public Object newJavaInstance() {
-		try {
-			return super.newJavaInstance();
+    }
+
+    private Object findDefaultConstructor() {
+	try {
+	    Constructor<?> defaultContructor = constructors.get(this.type);
+	    if (defaultContructor == null) {
+		defaultContructor = factory.findDefaultConstructor(TypeUtil.forName(this.type));
+		Constructor<?> previousConstructor = constructors.putIfAbsent(this.type, defaultContructor);
+		if (previousConstructor != null) {
+		    defaultContructor = previousConstructor; // Should be the same instance, anyway...
 		}
-		catch (RuntimeException e) {
-			if (e.getCause() instanceof InstantiationException)
-				return findDefaultConstructor();
-			throw e;
-		}
+	    }
+	    return defaultContructor.newInstance();
+	} catch (Exception e) {
+	    throw new RuntimeException("Could not create Proxy for: " + this.type);
 	}
-	
-	private Object findDefaultConstructor() {
-		try {
-			Constructor<?> defaultContructor = constructors.get(type);
-			if (defaultContructor == null) {
-				defaultContructor = factory.findDefaultConstructor(TypeUtil.forName(type));
-	            Constructor<?> previousConstructor = constructors.putIfAbsent(type, defaultContructor);
-	            if (previousConstructor != null)
-	            	defaultContructor = previousConstructor; // Should be the same instance, anyway...
-			}
-			return defaultContructor.newInstance();
-		}
-		catch (Exception e) {
-			throw new RuntimeException("Could not create Proxy for: " + type);
-		}
-	}
+    }
 }
+
 class SunConstructorFactory {
 
     private final Object reflectionFactory;
     private final Method newConstructorForSerialization;
 
     public SunConstructorFactory() {
-        try {
-            Class<?> factoryClass = TypeUtil.forName("sun.reflect.ReflectionFactory");
-            Method getReflectionFactory = factoryClass.getDeclaredMethod("getReflectionFactory");
-            reflectionFactory = getReflectionFactory.invoke(null);
-            newConstructorForSerialization = factoryClass.getDeclaredMethod(
-                "newConstructorForSerialization",
-                new Class[]{Class.class, Constructor.class}
-            );
-        } catch (Exception e) {
-            throw new RuntimeException("Could not create Sun Factory", e);
-        }
+	try {
+	    Class<?> factoryClass = TypeUtil.forName("sun.reflect.ReflectionFactory");
+	    Method getReflectionFactory = factoryClass.getDeclaredMethod("getReflectionFactory");
+	    this.reflectionFactory = getReflectionFactory.invoke(null);
+	    this.newConstructorForSerialization = factoryClass.getDeclaredMethod("newConstructorForSerialization", new Class[] { Class.class, Constructor.class });
+	} catch (Exception e) {
+	    throw new RuntimeException("Could not create Sun Factory", e);
+	}
     }
 
     @SuppressWarnings("unchecked")
     public <T> Constructor<T> findDefaultConstructor(Class<T> clazz) {
-        try {
-            Constructor<?> constructor = Object.class.getDeclaredConstructor();
-            constructor = (Constructor<?>)newConstructorForSerialization.invoke(
-                reflectionFactory,
-                new Object[]{clazz, constructor}
-            );
-            constructor.setAccessible(true);
-            return (Constructor<T>)constructor;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+	try {
+	    Constructor<?> constructor = Object.class.getDeclaredConstructor();
+	    constructor = (Constructor<?>) this.newConstructorForSerialization.invoke(this.reflectionFactory, new Object[] { clazz, constructor });
+	    constructor.setAccessible(true);
+	    return (Constructor<T>) constructor;
+	} catch (Exception e) {
+	    throw new RuntimeException(e);
+	}
     }
 }

@@ -34,23 +34,28 @@ import org.granite.client.messaging.events.TimeoutEvent;
  */
 public class DefaultResponseListener implements ResponseListener {
 
-	@Override
-	public void onResult(ResultEvent event) {
-	}
+    @Override
+    public void onResult(ResultEvent event) {
+	// Empty.
+    }
 
-	@Override
-	public void onFault(FaultEvent event) {
-	}
+    @Override
+    public void onFault(FaultEvent event) {
+	// Empty.
+    }
 
-	@Override
-	public void onFailure(FailureEvent event) {
-	}
+    @Override
+    public void onFailure(FailureEvent event) {
+	// Empty.
+    }
 
-	@Override
-	public void onTimeout(TimeoutEvent event) {
-	}
+    @Override
+    public void onTimeout(TimeoutEvent event) {
+	// Empty.
+    }
 
-	@Override
-	public void onCancelled(CancelledEvent event) {
-	}
+    @Override
+    public void onCancelled(CancelledEvent event) {
+	// Empty.
+    }
 }

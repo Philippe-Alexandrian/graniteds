@@ -26,8 +26,6 @@ import org.granite.config.servlet3.ServerFilter;
 /**
  * Created by william on 30/09/13.
  */
-@ServerFilter(
-    factoryClassName="org.granite.messaging.service.EjbServiceFactory"
-)
+@ServerFilter(factoryClassName = "org.granite.messaging.service.EjbServiceFactory")
 public class DataApplication {
 }

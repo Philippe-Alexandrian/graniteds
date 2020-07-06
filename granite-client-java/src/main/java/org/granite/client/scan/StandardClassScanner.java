@@ -37,73 +37,71 @@ import org.granite.scan.ScannerFactory;
  * @author Franck WOLFF
  */
 public class StandardClassScanner implements ClassScanner {
-	
-	private static final Logger log = Logger.getLogger(StandardClassScanner.class);
+
+    static final Logger log = Logger.getLogger(StandardClassScanner.class);
+
+    @Override
+    public Set<Class<?>> scan(Set<String> packageNames, Class<? extends Annotation> annotationClass) {
+	Set<Class<?>> classes = new HashSet<>();
+
+	Scanner scanner = ScannerFactory.createScanner(new MessagingScannedItemHandler(packageNames, classes, annotationClass), null);
+	try {
+	    scanner.scan();
+	} catch (Exception e) {
+	    log.error(e, "Could not scan classpath for @RemoteAlias");
+	}
+
+	return classes;
+    }
+
+    class MessagingScannedItemHandler implements ScannedItemHandler {
+
+	final String[] packageNames;
+	final Set<Class<?>> classes;
+	final Class<? extends Annotation> annotationClass;
+
+	MessagingScannedItemHandler(Set<String> packageNames, Set<Class<?>> classes, Class<? extends Annotation> annotationClass) {
+	    this.packageNames = new String[packageNames.size()];
+	    int i = 0;
+	    for (String packageName : packageNames) {
+		this.packageNames[i++] = packageName.replace('.', '/') + '/';
+	    }
+
+	    this.classes = classes;
+	    this.annotationClass = annotationClass;
+	}
 
 	@Override
-	public Set<Class<?>> scan(Set<String> packageNames, Class<? extends Annotation> annotationClass) {
-		Set<Class<?>> classes = new HashSet<Class<?>>();
-		
-		Scanner scanner = ScannerFactory.createScanner(new MessagingScannedItemHandler(packageNames, classes, annotationClass), null);
-        try {
-            scanner.scan();
-        }
-        catch (Exception e) {
-            log.error(e, "Could not scan classpath for @RemoteAlias");
-        }
-		
-        return classes;
+	public boolean handleMarkerItem(ScannedItem item) {
+	    return false;
 	}
-	
-	class MessagingScannedItemHandler implements ScannedItemHandler {
 
-		final String[] packageNames;
-		final Set<Class<?>> classes;
-		final Class<? extends Annotation> annotationClass;
-		
-		MessagingScannedItemHandler(Set<String> packageNames, Set<Class<?>> classes, Class<? extends Annotation> annotationClass) {
-			this.packageNames = new String[packageNames.size()];
-			int i = 0;
-			for (String packageName : packageNames)
-				this.packageNames[i++] = packageName.replace('.', '/') + '/';
-			
-			this.classes = classes;
-			this.annotationClass = annotationClass;
-		}
-		
-		@Override
-		public boolean handleMarkerItem(ScannedItem item) {
-			return false;
+	@Override
+	public void handleScannedItem(ScannedItem item) {
+	    if ("class".equals(item.getExtension())) {
+		boolean scan = false;
+
+		String path = item.getRelativePath();
+		for (String packageName : this.packageNames) {
+		    if (path.startsWith(packageName)) {
+			scan = true;
+			break;
+		    }
 		}
 
-		@Override
-		public void handleScannedItem(ScannedItem item) {
-			if ("class".equals(item.getExtension())) {
-				boolean scan = false;
-				
-				String path = item.getRelativePath();
-				for (String packageName : packageNames) {
-					if (path.startsWith(packageName)) {
-						scan = true;
-						break;
-					}
-				}
-				
-				if (scan) {
-					try {
-						Class<?> cls = item.loadAsClass();
-						if (cls.isAnnotationPresent(annotationClass))
-							classes.add(cls);
-					}
-					catch (ClassFormatError e) {
-					}
-					catch (ClassNotFoundException e) {
-					}
-					catch (IOException e) {
-						log.error(e, "Could not load class: %s", item);
-					}
-				}
+		if (scan) {
+		    try {
+			Class<?> cls = item.loadAsClass();
+			if (cls.isAnnotationPresent(this.annotationClass)) {
+			    this.classes.add(cls);
 			}
+		    } catch (ClassFormatError | ClassNotFoundException e) {
+			// Empty.
+		    } catch (IOException e) {
+			log.error(e, "Could not load class: %s", item);
+		    }
 		}
+	    }
 	}
+    }
 }

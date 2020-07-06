@@ -25,5 +25,5 @@ package org.granite.client.messaging.messages;
  * @author Franck WOLFF
  */
 public interface RequestMessage extends Message {
-
+    // Empty.
 }

@@ -26,7 +26,6 @@ import javax.websocket.WebSocketContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.granite.client.messaging.transport.websocket.WebSocketTransport;
 
-
 /**
  * @author William DRAI
  */
@@ -34,7 +33,7 @@ public class TyrusWebSocketTransport extends WebSocketTransport {
 
     @Override
     protected WebSocketContainer createContainer() {
-        return ClientManager.createClient();
+	return ClientManager.createClient();
     }
 
     @Override

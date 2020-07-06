@@ -33,10 +33,11 @@ public interface Loader<C> {
 
     /**
      * Called when a lazy collection should be loaded
+     * 
      * @param object the collection/map
      * @param callback a callback to call when loading is finished
      */
-    public void load(PersistentCollection<C> object, InitializationCallback<C>callback);
+    public void load(PersistentCollection<C> object, InitializationCallback<C> callback);
 
     /**
      * Called before starting loading

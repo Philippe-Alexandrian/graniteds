@@ -22,8 +22,7 @@
 package org.granite.client.messaging.channel;
 
 /**
- * Interface for channels for which the session id can be forced
- * Used to propagate session id from a master channel to the others
+ * Interface for channels for which the session id can be forced Used to propagate session id from a master channel to the others
  *
  * @author William DRAI
  */
@@ -31,7 +30,8 @@ public interface SessionAwareChannel {
 
     /**
      * Set current session id
+     * 
      * @param sessionId session id
      */
-	public void setSessionId(String sessionId);
+    public void setSessionId(String sessionId);
 }

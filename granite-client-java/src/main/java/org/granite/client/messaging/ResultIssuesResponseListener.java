@@ -28,8 +28,8 @@ import org.granite.client.messaging.events.FaultEvent;
  */
 public abstract class ResultIssuesResponseListener extends ResultFaultIssuesResponseListener {
 
-	@Override
-	public void onFault(FaultEvent event) {
-		onIssue(event);
-	}
+    @Override
+    public void onFault(FaultEvent event) {
+	onIssue(event);
+    }
 }

@@ -39,92 +39,89 @@ import org.granite.client.messaging.transport.TransportException;
 import org.granite.client.messaging.transport.TransportMessage;
 import org.granite.util.PublicByteArrayOutputStream;
 
-
 public class MockRemoteService extends RemoteService {
-    
+
     private static ResponseBuilder responseBuilder = null;
     private static boolean shouldFail = false;
-    
+
     private static Executor executor = Executors.newSingleThreadExecutor();
-    
+
     public MockRemoteService(RemotingChannel remotingChannel, String destination) {
-    	super(remotingChannel, destination);
+	super(remotingChannel, destination);
     }
-    
+
     public static void setResponseBuilder(ResponseBuilder rb) {
-    	responseBuilder = rb;
+	responseBuilder = rb;
     }
-    
+
     public static void setShouldFail(boolean shouldFail) {
-    	MockRemoteService.shouldFail = shouldFail;
+	MockRemoteService.shouldFail = shouldFail;
     }
-    
+
     @Override
-	public RemoteServiceInvocation newInvocation(String method, Object...parameters) {
-		return new MockRemoteServiceInvocation(method, parameters);
+    public RemoteServiceInvocation newInvocation(String method, Object... parameters) {
+	return new MockRemoteServiceInvocation(method, parameters);
+    }
+
+    public class MockRemoteServiceInvocation extends RemoteServiceInvocation {
+
+	private final InvocationMessage request;
+	private final List<ResponseListener> listeners = new ArrayList<>();
+
+	public MockRemoteServiceInvocation(final String method, final Object... parameters) {
+	    super(MockRemoteService.this, method, parameters);
+	    this.request = new InvocationMessage(getId(), method, parameters);
 	}
-    
-	public class MockRemoteServiceInvocation extends RemoteServiceInvocation {
-		
-		private final InvocationMessage request;
-		private final List<ResponseListener> listeners = new ArrayList<ResponseListener>();
-		
-		public MockRemoteServiceInvocation(final String method, final Object...parameters) {
-			super(MockRemoteService.this, method, parameters);
-			request = new InvocationMessage(getId(), method, parameters);
+
+	@Override
+	public RemoteServiceInvocationChain appendInvocation(String method, Object... parameters) {
+	    return null;
+	}
+
+	@Override
+	public RemoteServiceInvocation addListener(ResponseListener listener) {
+	    if (listener != null) {
+		this.listeners.add(listener);
+	    }
+	    return this;
+	}
+
+	@Override
+	public RemoteServiceInvocation addListeners(ResponseListener... listeners) {
+	    if ((listeners != null) && (listeners.length > 0)) {
+		this.listeners.addAll(Arrays.asList(listeners));
+	    }
+	    return this;
+	}
+
+	@Override
+	public ResponseMessageFuture invoke() {
+	    final AsyncToken token = new AsyncToken(this.request, this.listeners.toArray(new ResponseListener[this.listeners.size()]));
+	    executor.execute(() -> {
+		try {
+		    Thread.sleep(50);
+		} catch (InterruptedException e1) {
 		}
 
-		@Override
-		public RemoteServiceInvocationChain appendInvocation(String method, Object... parameters) {
-			return null;
+		PublicByteArrayOutputStream os = new PublicByteArrayOutputStream(512);
+		TransportMessage message = null;
+		try {
+		    message = ((MockAMFRemotingChannel) getChannel()).createMessage(token);
+		    message.encode(os);
+		} catch (IOException e) {
+		    throw new TransportException("Message serialization failed: " + message.getId(), e);
 		}
-		
-		public RemoteServiceInvocation addListener(ResponseListener listener) {
-			if (listener != null)
-				this.listeners.add(listener);
-			return this;
+
+		if (shouldFail) {
+		    token.dispatchFailure(new IOException("Connect failed"));
+		    shouldFail = false;
+		} else {
+		    ResultMessage result = (ResultMessage) responseBuilder.buildResponseMessage(MockRemoteService.this, MockRemoteServiceInvocation.this.request);
+		    token.dispatchResult(result);
 		}
-		
-		public RemoteServiceInvocation addListeners(ResponseListener...listeners) {
-			if (listeners != null && listeners.length > 0)
-				this.listeners.addAll(Arrays.asList(listeners));
-			return this;
-		}
-		
-		@Override
-		public ResponseMessageFuture invoke() {
-			final AsyncToken token = new AsyncToken(request, listeners.toArray(new ResponseListener[listeners.size()]));
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						Thread.sleep(50);
-					} 
-					catch (InterruptedException e1) {
-					}
-					
-					PublicByteArrayOutputStream os = new PublicByteArrayOutputStream(512);
-					TransportMessage message = null;
-					try {
-						message = ((MockAMFRemotingChannel)getChannel()).createMessage(token);
-						message.encode(os);
-					}
-					catch (IOException e) {
-						throw new TransportException("Message serialization failed: " + message.getId(), e);
-					}
-					
-					if (shouldFail) {
-						token.dispatchFailure(new IOException("Connect failed"));
-						shouldFail = false;
-					}
-					else {
-						ResultMessage result = (ResultMessage)responseBuilder.buildResponseMessage(MockRemoteService.this, request);
-						token.dispatchResult(result);
-					}
-				}
-			});
-			return token;
-		}
+	    });
+	    return token;
 	}
+    }
 
 }

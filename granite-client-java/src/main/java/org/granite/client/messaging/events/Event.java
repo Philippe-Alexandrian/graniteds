@@ -31,19 +31,16 @@ public interface Event {
     /**
      * Types of channel events
      */
-	public static enum Type {
-		RESULT,
-		FAULT,
-		FAILURE,
-		TIMEOUT,
-		CANCELLED,
-		
-		TOPIC
-	}
+    public static enum Type {
+	RESULT, FAULT, FAILURE, TIMEOUT, CANCELLED,
+
+	TOPIC
+    }
 
     /**
      * Type of the event
+     * 
      * @return type of the event
      */
-	Type getType();
+    Type getType();
 }

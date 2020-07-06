@@ -34,71 +34,65 @@ import org.granite.client.messaging.channel.Credentials;
 public final class LoginMessage extends AbstractRequestMessage {
 
     private static final long serialVersionUID = 1L;
-	
-	private Credentials credentials;
-	
-	public LoginMessage() {
-	}
 
-	public LoginMessage(String clientId, Credentials credentials) {
-		super(clientId);
-		
-		this.credentials = credentials;
-	}
+    private Credentials credentials;
 
-	public LoginMessage(
-		String id,
-		String clientId,
-		long timestamp,
-		long timeToLive,
-		Map<String, Object> headers,
-		Credentials credentials) {
-		
-		super(id, clientId, timestamp, timeToLive, headers);
-		
-		this.credentials = credentials;
-	}
+    public LoginMessage() {
+    }
 
-	@Override
-	public Type getType() {
-		return Type.LOGIN;
-	}
+    public LoginMessage(String clientId, Credentials credentials) {
+	super(clientId);
 
-	public Credentials getCredentials() {
-		return credentials;
-	}
+	this.credentials = credentials;
+    }
 
-	public void setCredentials(Credentials credentials) {
-		this.credentials = credentials;
-	}
-	
-	@Override
-	public LoginMessage copy() {
-		LoginMessage message = new LoginMessage();
-		
-		copy(message);
-		
-		message.credentials = credentials;
-		
-		return message;
-	}
+    public LoginMessage(String id, String clientId, long timestamp, long timeToLive, Map<String, Object> headers, Credentials credentials) {
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		super.readExternal(in);
-		
-		credentials = (Credentials)in.readObject();
-	}
+	super(id, clientId, timestamp, timeToLive, headers);
 
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-		super.writeExternal(out);
-		
-		out.writeObject(credentials);
-	}
-	
-	@Override
-	public StringBuilder toString(StringBuilder sb) {
-		return super.toString(sb).append("\n    credentials=").append(credentials);
-	}
+	this.credentials = credentials;
+    }
+
+    @Override
+    public Type getType() {
+	return Type.LOGIN;
+    }
+
+    public Credentials getCredentials() {
+	return this.credentials;
+    }
+
+    public void setCredentials(Credentials credentials) {
+	this.credentials = credentials;
+    }
+
+    @Override
+    public LoginMessage copy() {
+	LoginMessage message = new LoginMessage();
+
+	copy(message);
+
+	message.credentials = this.credentials;
+
+	return message;
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	super.readExternal(in);
+
+	this.credentials = (Credentials) in.readObject();
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+	super.writeExternal(out);
+
+	out.writeObject(this.credentials);
+    }
+
+    @Override
+    public StringBuilder toString(StringBuilder sb) {
+	return super.toString(sb).append("\n    credentials=").append(this.credentials);
+    }
 }

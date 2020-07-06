@@ -47,60 +47,62 @@ import flex.messaging.messages.Message;
  * @author Franck WOLFF
  */
 public class JMFRemotingChannel extends AbstractAMFChannel implements RemotingChannel {
-	
-	protected final MessagingCodec<AMF0Message> codec;
-	protected volatile int index = 1;
 
-	public JMFRemotingChannel(Transport transport, ClientSharedContext sharedContext, String id, URI uri, int maxConcurrentRequests) {
-		super(transport, id, uri, maxConcurrentRequests);
-		
-		this.codec = new JMFAMF0MessagingCodec(sharedContext);
-	}
+    protected final MessagingCodec<AMF0Message> codec;
+    protected volatile int index = 1;
 
-    public JMFRemotingChannel(Transport transport, MessagingCodec<AMF0Message> codec, String id, URI uri, int maxConcurrentRequests) {
-        super(transport, id, uri, maxConcurrentRequests);
+    public JMFRemotingChannel(Transport transport, ClientSharedContext sharedContext, String id, URI uri, int maxConcurrentRequests) {
+	super(transport, id, uri, maxConcurrentRequests);
 
-        this.codec = codec;
+	this.codec = new JMFAMF0MessagingCodec(sharedContext);
     }
 
-	@Override
-	protected TransportMessage createTransportMessage(AsyncToken token) throws UnsupportedEncodingException {
-		AMF0Message amf0Message = new AMF0Message();
-		for (Message message : convertToAmf(token.getRequest())) {
-		    AMF0Body body = new AMF0Body("", "/" + (index++), new Object[]{message}, AMF0Body.DATA_TYPE_AMF3_OBJECT);
-		    amf0Message.addBody(body);
-		}
-		return new DefaultTransportMessage<AMF0Message>(token.getId(), false, token.isDisconnectRequest(), clientId, null, amf0Message, codec);
+    public JMFRemotingChannel(Transport transport, MessagingCodec<AMF0Message> codec, String id, URI uri, int maxConcurrentRequests) {
+	super(transport, id, uri, maxConcurrentRequests);
+
+	this.codec = codec;
+    }
+
+    @Override
+    protected TransportMessage createTransportMessage(AsyncToken token) throws UnsupportedEncodingException {
+	AMF0Message amf0Message = new AMF0Message();
+	for (Message message : convertToAmf(token.getRequest())) {
+	    AMF0Body body = new AMF0Body("", "/" + (this.index++), new Object[] { message }, AMF0Body.DATA_TYPE_AMF3_OBJECT);
+	    amf0Message.addBody(body);
+	}
+	return new DefaultTransportMessage<>(token.getId(), false, token.isDisconnectRequest(), this.clientId, null, amf0Message, this.codec);
+    }
+
+    @Override
+    protected ResponseMessage decodeResponse(InputStream is) throws IOException {
+	final AMF0Message amf0Message = this.codec.decode(is);
+	final int messagesCount = amf0Message.getBodyCount();
+
+	AbstractResponseMessage response = null, previous = null;
+
+	for (int i = 0; i < messagesCount; i++) {
+	    AMF0Body body = amf0Message.getBody(i);
+
+	    if (!(body.getValue() instanceof AMF3Object)) {
+		throw new RuntimeException("Message should be an AMF3Object: " + body.getValue());
+	    }
+
+	    AMF3Object bodyObject = (AMF3Object) body.getValue();
+	    if (!(bodyObject.getValue() instanceof AcknowledgeMessage)) {
+		throw new RuntimeException("Message should be an AcknowledgeMessage: " + bodyObject.getValue());
+	    }
+
+	    AcknowledgeMessage message = (AcknowledgeMessage) bodyObject.getValue();
+	    AbstractResponseMessage current = convertFromAmf(message);
+
+	    if (response == null) {
+		response = previous = current;
+	    } else {
+		previous.setNext(current);
+		previous = current;
+	    }
 	}
 
-	@Override
-	protected ResponseMessage decodeResponse(InputStream is) throws IOException {
-		final AMF0Message amf0Message = codec.decode(is);
-		final int messagesCount = amf0Message.getBodyCount();
-		
-		AbstractResponseMessage response = null, previous = null;
-		
-		for (int i = 0; i < messagesCount; i++) {
-			AMF0Body body = amf0Message.getBody(i);
-			
-			if (!(body.getValue() instanceof AMF3Object))
-				throw new RuntimeException("Message should be an AMF3Object: " + body.getValue());
-			
-			AMF3Object bodyObject = (AMF3Object)body.getValue();
-			if (!(bodyObject.getValue() instanceof AcknowledgeMessage))
-				throw new RuntimeException("Message should be an AcknowledgeMessage: " + bodyObject.getValue());
-			
-			AcknowledgeMessage message = (AcknowledgeMessage)bodyObject.getValue();
-			AbstractResponseMessage current = convertFromAmf(message);
-			
-			if (response == null)
-				response = previous = current;
-			else {
-				previous.setNext(current);
-				previous = current;
-			}
-		}
-		
-		return response;
-	}
+	return response;
+    }
 }

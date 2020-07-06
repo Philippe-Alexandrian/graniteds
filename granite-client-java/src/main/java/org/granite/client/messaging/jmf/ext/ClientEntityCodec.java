@@ -39,72 +39,80 @@ import org.granite.messaging.reflect.Property;
  */
 public class ClientEntityCodec implements ExtendedObjectCodec {
 
-	public boolean canEncode(ExtendedObjectOutput out, Object v) {
-		return v.getClass().isAnnotationPresent(Entity.class);
+    @Override
+    public boolean canEncode(ExtendedObjectOutput out, Object v) {
+	return v.getClass().isAnnotationPresent(Entity.class);
+    }
+
+    @Override
+    public String getEncodedClassName(ExtendedObjectOutput out, Object v) {
+	return out.getAlias(v.getClass().getName());
+    }
+
+    @Override
+    public void encode(ExtendedObjectOutput out, Object v) throws IOException, IllegalAccessException, InvocationTargetException {
+
+	Persistence persistence = Platform.persistence();
+
+	boolean initialized = persistence.isInitialized(v);
+
+	out.writeBoolean(initialized);
+	out.writeUTF(persistence.getDetachedState(v));
+
+	if (!initialized) {
+	    out.writeObject(persistence.getId(v));
+	} else {
+	    List<Property> properties = new ArrayList<>(out.getReflection().findSerializableProperties(v.getClass()));
+	    properties.remove(persistence.getInitializedProperty(v.getClass()));
+	    properties.remove(persistence.getDetachedStateProperty(v.getClass()));
+
+	    for (Property property : properties) {
+		out.getAndWriteProperty(v, property);
+	    }
 	}
+    }
 
-	public String getEncodedClassName(ExtendedObjectOutput out, Object v) {
-        return out.getAlias(v.getClass().getName());
+    @Override
+    public boolean canDecode(ExtendedObjectInput in, String className) throws ClassNotFoundException {
+	String alias = in.getAlias(className);
+	Class<?> cls = in.getReflection().loadClass(alias);
+	return cls.isAnnotationPresent(Entity.class);
+    }
+
+    @Override
+    public String getDecodedClassName(ExtendedObjectInput in, String className) {
+	return in.getAlias(className);
+    }
+
+    @Override
+    public Object newInstance(ExtendedObjectInput in, String className) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException,
+	    InvocationTargetException, SecurityException, NoSuchMethodException, IOException {
+
+	Class<?> cls = in.getReflection().loadClass(className);
+	return in.getReflection().newInstance(cls);
+    }
+
+    @Override
+    public void decode(ExtendedObjectInput in, Object v) throws IOException, ClassNotFoundException, IllegalAccessException, InvocationTargetException {
+
+	Persistence persistence = Platform.persistence();
+
+	boolean initialized = in.readBoolean();
+	String detachedState = in.readUTF();
+
+	persistence.setInitialized(v, initialized);
+	persistence.setDetachedState(v, detachedState);
+
+	if (!initialized) {
+	    persistence.setId(v, in.readObject());
+	} else {
+	    List<Property> properties = new ArrayList<>(in.getReflection().findSerializableProperties(v.getClass()));
+	    properties.remove(persistence.getInitializedProperty(v.getClass()));
+	    properties.remove(persistence.getDetachedStateProperty(v.getClass()));
+
+	    for (Property property : properties) {
+		in.readAndSetProperty(v, property);
+	    }
 	}
-
-	public void encode(ExtendedObjectOutput out, Object v) throws IOException, IllegalAccessException, InvocationTargetException {
-		
-		Persistence persistence = Platform.persistence();
-		
-		boolean initialized = persistence.isInitialized(v);
-		
-		out.writeBoolean(initialized);
-		out.writeUTF(persistence.getDetachedState(v));
-		
-		if (!initialized)
-			out.writeObject(persistence.getId(v));
-		else {
-			List<Property> properties = new ArrayList<Property>(out.getReflection().findSerializableProperties(v.getClass()));
-			properties.remove(persistence.getInitializedProperty(v.getClass()));
-			properties.remove(persistence.getDetachedStateProperty(v.getClass()));
-
-			for (Property property : properties)
-				out.getAndWriteProperty(v, property);
-		}
-	}
-
-	public boolean canDecode(ExtendedObjectInput in, String className) throws ClassNotFoundException {
-		String alias = in.getAlias(className);
-		Class<?> cls = in.getReflection().loadClass(alias);
-		return cls.isAnnotationPresent(Entity.class);
-	}
-
-	public String getDecodedClassName(ExtendedObjectInput in, String className) {
-		return in.getAlias(className);
-	}
-
-	public Object newInstance(ExtendedObjectInput in, String className)
-		throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException,
-		InvocationTargetException, SecurityException, NoSuchMethodException, IOException {
-		
-		Class<?> cls = in.getReflection().loadClass(className);
-		return in.getReflection().newInstance(cls);
-	}
-
-	public void decode(ExtendedObjectInput in, Object v) throws IOException, ClassNotFoundException, IllegalAccessException, InvocationTargetException {
-		
-		Persistence persistence = Platform.persistence();
-		
-		boolean initialized = in.readBoolean();
-		String detachedState = in.readUTF();
-		
-		persistence.setInitialized(v, initialized);
-		persistence.setDetachedState(v, detachedState);
-		
-		if (!initialized)
-			persistence.setId(v, in.readObject());
-		else {
-			List<Property> properties = new ArrayList<Property>(in.getReflection().findSerializableProperties(v.getClass()));
-			properties.remove(persistence.getInitializedProperty(v.getClass()));
-			properties.remove(persistence.getDetachedStateProperty(v.getClass()));
-
-			for (Property property : properties)
-				in.readAndSetProperty(v, property);
-		}
-	}
+    }
 }

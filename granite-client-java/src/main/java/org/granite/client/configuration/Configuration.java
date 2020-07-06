@@ -26,43 +26,48 @@ import org.granite.config.Config;
 
 /**
  * Configuration object for AMF channel factory
+ * 
  * @author Franck WOLFF
  */
 public interface Configuration {
 
     /**
      * Client type (JAVA or AS3) for specific AMF serialization parameters
+     * 
      * @return client type
      */
-	ClientType getClientType();
+    ClientType getClientType();
 
     /**
      * Set the client type for specific AMF serialization parameters
+     * 
      * @param clientType client type
      */
-	void setClientType(ClientType clientType);
+    void setClientType(ClientType clientType);
 
     /**
      * ClientGraniteConfig object loaded of built by this configuration
+     * 
      * @return granite config
      */
-	<C extends Config> C getGraniteConfig();
-	
+    <C extends Config> C getGraniteConfig();
+
     /**
      * ServicesConfig object loaded of built by this configuration
+     * 
      * @return services config
      */
-	<C extends Config> C getServicesConfig();
+    <C extends Config> C getServicesConfig();
 
     /**
      * Is the configuration loaded ?
+     * 
      * @return true if loaded
      */
     boolean isLoaded();
 
     /**
-     * Load the configuration
-     * Called by the channel factory during {@link org.granite.client.messaging.channel.ChannelFactory#start}
+     * Load the configuration Called by the channel factory during {@link org.granite.client.messaging.channel.ChannelFactory#start}
      */
-	void load();
+    void load();
 }

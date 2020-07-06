@@ -27,37 +27,32 @@ import java.util.Map;
  * @author Franck WOLFF
  */
 public final class DisconnectMessage extends AbstractRequestMessage {
-	
+
     private static final long serialVersionUID = 1L;
-	
-	public DisconnectMessage() {
-	}
 
-	public DisconnectMessage(String clientId) {
-		super(clientId);
-	}
+    public DisconnectMessage() {
+    }
 
-	public DisconnectMessage(
-		String id,
-		String clientId,
-		long timestamp,
-		long timeToLive,
-		Map<String, Object> headers) {
-		
-		super(id, clientId, timestamp, timeToLive, headers);
-	}
-	
-	@Override
-	public DisconnectMessage copy() {
-		DisconnectMessage message = new DisconnectMessage();
-		
-		copy(message);
-		
-		return message;
-	}
+    public DisconnectMessage(String clientId) {
+	super(clientId);
+    }
 
-	@Override
-	public Type getType() {
-		return Type.DISCONNECT;
-	}
+    public DisconnectMessage(String id, String clientId, long timestamp, long timeToLive, Map<String, Object> headers) {
+
+	super(id, clientId, timestamp, timeToLive, headers);
+    }
+
+    @Override
+    public DisconnectMessage copy() {
+	DisconnectMessage message = new DisconnectMessage();
+
+	copy(message);
+
+	return message;
+    }
+
+    @Override
+    public Type getType() {
+	return Type.DISCONNECT;
+    }
 }

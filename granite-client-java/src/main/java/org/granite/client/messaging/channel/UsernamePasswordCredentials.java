@@ -33,70 +33,77 @@ import org.granite.util.Base64;
  */
 public final class UsernamePasswordCredentials implements Credentials {
 
-	private final String username;
-	private final String password;
-	private final Charset charset;
+    private final String username;
+    private final String password;
+    private final Charset charset;
 
     /**
      * Create credentials with the specified username and password
+     * 
      * @param username username
      * @param password password
      */
-	public UsernamePasswordCredentials(String username, String password) {
-		this(username, password, null);
-	}
+    public UsernamePasswordCredentials(String username, String password) {
+	this(username, password, null);
+    }
 
     /**
      * Create credentials with the specified username, password and charset (for localized usernames)
+     * 
      * @param username username
      * @param password password
      * @param charset charset
      */
-	public UsernamePasswordCredentials(String username, String password, Charset charset) {
-		this.username = username;
-		this.password = password;
-		this.charset = (charset != null ? charset : Charset.defaultCharset());
-	}
+    public UsernamePasswordCredentials(String username, String password, Charset charset) {
+	this.username = username;
+	this.password = password;
+	this.charset = (charset != null ? charset : Charset.defaultCharset());
+    }
 
     /**
      * Current username
+     * 
      * @return username
      */
-	public String getUsername() {
-		return username;
-	}
+    public String getUsername() {
+	return this.username;
+    }
 
     /**
      * Current password
+     * 
      * @return password
      */
-	public String getPassword() {
-		return password;
-	}
+    public String getPassword() {
+	return this.password;
+    }
 
     /**
      * Current charset
+     * 
      * @return charset
      */
-	public Charset getCharset() {
-		return charset;
-	}
-	
-	public String encodeBase64() throws UnsupportedEncodingException {
-		StringBuilder sb = new StringBuilder();
-		if (username != null) {
-			if (username.indexOf(':') != -1)
-				throw new UnsupportedEncodingException("Username cannot contain ':' characters: " + username);
-			sb.append(username);
-		}
-		sb.append(':');
-		if (username != null)
-			sb.append(password);
-		return Base64.encodeToString(sb.toString().getBytes(charset.name()), false);
-	}
+    public Charset getCharset() {
+	return this.charset;
+    }
 
-	@Override
-	public String toString() {
-		return getClass().getName() + " {username=***, password=***, charset=" + charset + "}";
+    public String encodeBase64() throws UnsupportedEncodingException {
+	StringBuilder sb = new StringBuilder();
+	if (this.username != null) {
+	    if (this.username.indexOf(':') != -1) {
+		throw new UnsupportedEncodingException("Username cannot contain ':' characters: " + this.username);
+	    }
+	    sb.append(this.username);
 	}
+	sb.append(':');
+	if (this.username != null) {
+	    sb.append(this.password);
+	}
+	return Base64.encodeToString(sb.toString().getBytes(this.charset.name()), false);
+    }
+
+    @Override
+    public String toString() {
+	return getClass().getName() + " {username=***, password=***, charset=" + this.charset + "}";
+    }
 }

@@ -26,35 +26,35 @@ package org.granite.client.messaging.transport;
  */
 public class TransportHttpStatusException extends TransportException {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private final int status;
-	
-	public TransportHttpStatusException(int status) {
-		this.status = status;
-	}
+    private final int status;
 
-	public TransportHttpStatusException(int status, String message) {
-		super(message);
-		this.status = status;
-	}
+    public TransportHttpStatusException(int status) {
+	this.status = status;
+    }
 
-	public TransportHttpStatusException(int status, Throwable cause) {
-		super(cause);
-		this.status = status;
-	}
+    public TransportHttpStatusException(int status, String message) {
+	super(message);
+	this.status = status;
+    }
 
-	public TransportHttpStatusException(int status, String message, Throwable cause) {
-		super(message, cause);
-		this.status = status;
-	}
+    public TransportHttpStatusException(int status, Throwable cause) {
+	super(cause);
+	this.status = status;
+    }
 
-	public int getStatus() {
-		return status;
-	}
+    public TransportHttpStatusException(int status, String message, Throwable cause) {
+	super(message, cause);
+	this.status = status;
+    }
 
-	@Override
-	public String toString() {
-		return super.toString() + " (code=" + status + ")";
-	}
+    public int getStatus() {
+	return this.status;
+    }
+
+    @Override
+    public String toString() {
+	return super.toString() + " (code=" + this.status + ")";
+    }
 }

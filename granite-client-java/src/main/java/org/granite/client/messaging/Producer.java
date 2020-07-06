@@ -28,13 +28,13 @@ import org.granite.client.messaging.channel.ResponseMessageFuture;
 import org.granite.client.messaging.messages.requests.PublishMessage;
 
 /**
- * Producer class that allows to publish messages on a remote pub/sub destination
- * All {@link #publish} methods are asynchronous and won't block the thread initiating the call.
+ * Producer class that allows to publish messages on a remote pub/sub destination All {@link #publish} methods are asynchronous and won't block the thread initiating the call.
  *
  * <pre>
- * {@code
- * Producer producer = new Producer(messagingChannel, "myDestination", "myTopic");
- * producer.publish("some message");
+ * {
+ *     &#64;code
+ *     Producer producer = new Producer(messagingChannel, "myDestination", "myTopic");
+ *     producer.publish("some message");
  * }
  * </pre>
  *
@@ -44,37 +44,40 @@ public class Producer extends AbstractTopicAgent {
 
     /**
      * Create a producer for the specified channel and destination
+     * 
      * @param channel messaging channel
      * @param destination remote destination
      * @param topic subtopic to which the producer sends its messages
      */
-	public Producer(MessagingChannel channel, String destination, String topic) {
-		super(channel, destination, topic);
-	}
+    public Producer(MessagingChannel channel, String destination, String topic) {
+	super(channel, destination, topic);
+    }
 
     /**
      * Publish a message on the channel
+     * 
      * @param message message (any object or String)
      * @param listeners array of listeners that will be notified when the message is delivered
      * @return future triggered when the message is delivered
      */
-	public ResponseMessageFuture publish(Object message, ResponseListener...listeners) {
-		PublishMessage publishMessage = new PublishMessage(destination, topic, message);
-		publishMessage.getHeaders().putAll(defaultHeaders);
-		return channel.send(publishMessage, listeners);
-	}
+    public ResponseMessageFuture publish(Object message, ResponseListener... listeners) {
+	PublishMessage publishMessage = new PublishMessage(this.destination, this.topic, message);
+	publishMessage.getHeaders().putAll(this.defaultHeaders);
+	return this.channel.send(publishMessage, listeners);
+    }
 
     /**
      * Publish a message on the channel with the specified headers
+     * 
      * @param message message (any object or String)
      * @param headers headers for this message
      * @param listeners array of listeners that will be notified when the message is delivered
      * @return future triggered when the message is delivered
      */
-	public ResponseMessageFuture publish(Object message, Map<String, Object> headers, ResponseListener...listeners) {
-		PublishMessage publishMessage = new PublishMessage(destination, topic, message);
-		publishMessage.getHeaders().putAll(defaultHeaders);
-		publishMessage.getHeaders().putAll(headers);
-		return channel.send(publishMessage, listeners);
-	}
+    public ResponseMessageFuture publish(Object message, Map<String, Object> headers, ResponseListener... listeners) {
+	PublishMessage publishMessage = new PublishMessage(this.destination, this.topic, message);
+	publishMessage.getHeaders().putAll(this.defaultHeaders);
+	publishMessage.getHeaders().putAll(headers);
+	return this.channel.send(publishMessage, listeners);
+    }
 }
