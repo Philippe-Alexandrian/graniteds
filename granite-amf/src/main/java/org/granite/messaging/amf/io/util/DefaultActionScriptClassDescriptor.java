@@ -25,80 +25,81 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 
-import org.granite.util.TypeUtil;
+import org.granite.logging.Logger;
 import org.granite.util.Introspector;
 import org.granite.util.PropertyDescriptor;
+import org.granite.util.TypeUtil;
 
 /**
  * @author Franck WOLFF
  */
 public class DefaultActionScriptClassDescriptor extends ActionScriptClassDescriptor {
 
-	private final Class<?> clazz;
-	
+    private final Class<?> clazz;
+
     public DefaultActionScriptClassDescriptor(String type, byte encoding) {
-        super(type, encoding);
-        
-        this.clazz = forName(type, instantiator);
+	super(type, encoding);
+
+	this.clazz = forName(type, this.instantiator);
     }
-    
+
     private static Class<?> forName(String name, String instantiator) {
-    	if (name.length() == 0)
-    		return HashMap.class;
-    	
-    	String className = (instantiator != null ? instantiator : name);
-		try {
-			return TypeUtil.forName(className);
-		}
-		catch (Throwable t) {
-			throw new RuntimeException("Class not found: " + className);
-		}
+	if (name.length() == 0) {
+	    return HashMap.class;
+	}
+
+	String className = (instantiator != null ? instantiator : name);
+	try {
+	    return TypeUtil.forName(className);
+	} catch (Throwable t) {
+	    throw new RuntimeException("Class not found: " + className);
+	}
     }
 
     @Override
     public void defineProperty(String name) {
 
-        if (type.length() == 0 || instantiator != null)
-            properties.add(new MapProperty(converters, name));
-        else {
-            try {
-                // Try to find public getter/setter.
-                PropertyDescriptor[] props = Introspector.getPropertyDescriptors(clazz);
-                for (PropertyDescriptor prop : props) {
-                    if (name.equals(prop.getName()) && prop.getWriteMethod() != null && prop.getReadMethod() != null) {
-                        properties.add(new MethodProperty(converters, name, prop.getWriteMethod(), prop.getReadMethod()));
-                        return;
-                    }
-                }
+	if ((this.type.length() == 0) || (this.instantiator != null)) {
+	    this.properties.add(new MapProperty(this.converters, name));
+	} else {
+	    try {
+		// Try to find public getter/setter.
+		PropertyDescriptor[] props = Introspector.getPropertyDescriptors(this.clazz);
+		for (PropertyDescriptor prop : props) {
+		    if (name.equals(prop.getName()) && (prop.getWriteMethod() != null) && (prop.getReadMethod() != null)) {
+			this.properties.add(new MethodProperty(this.converters, name, prop.getWriteMethod(), prop.getReadMethod()));
+			return;
+		    }
+		}
 
-                // Try to find public field.
-                Field field = clazz.getField(name);
-                if (!Modifier.isStatic(field.getModifiers()) && !Modifier.isTransient(field.getModifiers()))
-                    properties.add(new FieldProperty(converters, field));
+		// Try to find public field.
+		Field field = this.clazz.getField(name);
+		if (!Modifier.isStatic(field.getModifiers()) && !Modifier.isTransient(field.getModifiers())) {
+		    this.properties.add(new FieldProperty(this.converters, field));
+		}
 
-            }
-            catch (NoSuchFieldException e) {
-                if ("uid".equals(name)) // ObjectProxy specific property...
-                    properties.add(new UIDProperty(converters));
-                else
-                	throw new RuntimeException(e);
-            }
-            catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
+	    } catch (NoSuchFieldException e) {
+		if ("uid".equals(name)) {
+		    this.properties.add(new UIDProperty(this.converters));
+		} else {
+		    Logger.getLogger(DefaultActionScriptClassDescriptor.class).error("Exception: Class=" + this.clazz.getName() + " Property=" + name);
+		}
+	    } catch (Exception e) {
+		throw new RuntimeException(e);
+	    }
+	}
     }
 
     @Override
     public Object newJavaInstance() {
-        if (clazz == HashMap.class)
-            return new HashMap<String, Object>();
-        
-        try {
-			return clazz.newInstance();
-		}
-        catch (Exception e) {
-        	throw new RuntimeException("Could not create instance of: " + clazz.getName(), e);
-		}
+	if (this.clazz == HashMap.class) {
+	    return new HashMap<String, Object>();
+	}
+
+	try {
+	    return this.clazz.newInstance();
+	} catch (Exception e) {
+	    throw new RuntimeException("Could not create instance of: " + this.clazz.getName(), e);
+	}
     }
 }

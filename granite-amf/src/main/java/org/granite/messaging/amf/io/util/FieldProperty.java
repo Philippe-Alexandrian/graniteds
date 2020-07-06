@@ -25,6 +25,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 
+import org.granite.logging.Logger;
 import org.granite.messaging.amf.io.convert.Converters;
 import org.granite.messaging.amf.types.AMFSpecialValueFactory.SpecialValueFactory;
 
@@ -32,59 +33,59 @@ import org.granite.messaging.amf.types.AMFSpecialValueFactory.SpecialValueFactor
  * @author Franck WOLFF
  */
 public class FieldProperty extends Property {
-	
+
     private final Field field;
     private final SpecialValueFactory<?> factory;
 
     public FieldProperty(Converters converters, Field field) {
-        super(converters, field.getName());
-        
-        field.setAccessible(true);
-        this.field = field;
-        
-        this.factory = specialValueFactory.getValueFactory(this);
+	super(converters, field.getName());
+
+	field.setAccessible(true);
+	this.field = field;
+
+	this.factory = specialValueFactory.getValueFactory(this);
     }
 
     @Override
     public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass, boolean recursive) {
-        return field.isAnnotationPresent(annotationClass);
+	return this.field.isAnnotationPresent(annotationClass);
     }
 
     @Override
-	public <T extends Annotation> T getAnnotation(Class<T> annotationClass, boolean recursive) {
-		return field.getAnnotation(annotationClass);
-	}
-
-	@Override
-    public Type getType() {
-        return field.getGenericType();
+    public <T extends Annotation> T getAnnotation(Class<T> annotationClass, boolean recursive) {
+	return this.field.getAnnotation(annotationClass);
     }
-	
-	@Override
-	public Class<?> getDeclaringClass() {
-		return field.getDeclaringClass();
-	}
+
+    @Override
+    public Type getType() {
+	return this.field.getGenericType();
+    }
+
+    @Override
+    public Class<?> getDeclaringClass() {
+	return this.field.getDeclaringClass();
+    }
 
     @Override
     public void setValue(Object instance, Object value, boolean convert) {
-        try {
-            field.set(instance, convert ? convert(value) : value);
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+	try {
+	    this.field.set(instance, convert ? convert(value) : value);
+	} catch (Exception e) {
+	    Logger.getLogger(MethodProperty.class).error("Exception: Class=" + this.field.getDeclaringClass().getName() + " Property=" + getName() + " Expected="
+		    + value.getClass().getSimpleName() + " Actual=" + getType().getTypeName() + " value=" + value);
+	}
     }
 
     @Override
     public Object getValue(Object instance) {
-        try {
-            Object o = field.get(instance);
-            if (factory != null)
-            	o = factory.create(o);
-            return o;
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+	try {
+	    Object o = this.field.get(instance);
+	    if (this.factory != null) {
+		o = this.factory.create(o);
+	    }
+	    return o;
+	} catch (Exception e) {
+	    throw new RuntimeException(e);
+	}
     }
 }
