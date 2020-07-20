@@ -71,7 +71,7 @@ public class FieldProperty extends Property {
 	try {
 	    this.field.set(instance, convert ? convert(value) : value);
 	} catch (Exception e) {
-	    Logger.getLogger(MethodProperty.class).error("Exception: Class=" + this.field.getDeclaringClass().getName() + " Property=" + getName() + " Expected="
+	    Logger.getLogger(FieldProperty.class).error("Exception: Class=" + this.field.getDeclaringClass().getName() + " Property=" + getName() + " Expected="
 		    + value.getClass().getSimpleName() + " Actual=" + getType().getTypeName() + " value=" + value);
 	}
     }
