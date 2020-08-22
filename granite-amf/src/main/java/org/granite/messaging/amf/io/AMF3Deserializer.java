@@ -497,7 +497,7 @@ public class AMF3Deserializer implements ObjectInput, AMF3Constants {
 			clazz = (Class) ((ParameterizedType) property.getType()).getRawType();
 		    }
 		    if (clazz.isAssignableFrom(value.getClass()) == false) {
-			Logger.getLogger(AMF3Deserializer.class).warn("Conversion required: Class=" + desc.getType() + " Property=" + property.getName() + " ReadFieldClass="
+			Logger.getLogger(AMF3Deserializer.class).trace("Conversion required: Class=" + desc.getType() + " Property=" + property.getName() + " ReadFieldClass="
 				+ value.getClass().getSimpleName() + " ModelFieldClass=" + property.getType().getTypeName());
 		    }
 		}
